@@ -60,6 +60,23 @@ def health():
 @app.route("/")
 def index():
     return open("templates/demo.html", encoding="utf-8").read()
+@app.route("/run-pipeline", methods=["POST"])
+def run_pipeline():
+    from attack_generator import generate_all
+    from executor import execute
+    from judge import judge as run_judge
+    from reporter import generate_report
+    
+    attacks = generate_all()
+    executed = execute(attacks)
+    judged = run_judge(executed)
+    generate_report(judged)
+    successes = len([r for r in judged if r.get("success")])
+    return jsonify({"successes": successes, "total": len(judged)})
+
+@app.route("/report")
+def report():
+    return open("report.html", encoding="latin-1").read()
 
 @app.route("/attack", methods=["POST"])
 def attack():
