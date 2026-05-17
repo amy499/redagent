@@ -1,505 +1,243 @@
 <!DOCTYPE html>
-<html class="dark" lang="en">
+<html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>WEALTHGUARD AI | RedAgent Console</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script>
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          "surface": "#0c160a",
-          "secondary-container": "#14d1ff",
-          "error": "#ffb4ab",
-          "on-surface": "#dae6d2",
-          "surface-bright": "#313c2e",
-          "primary": "#ebffe2",
-          "secondary-fixed": "#b7eaff",
-          "on-secondary-fixed": "#001f28",
-          "tertiary-fixed-dim": "#ffb4ab",
-          "surface-container-low": "#141e12",
-          "surface-container": "#182216",
-          "on-secondary-container": "#00566b",
-          "on-primary-fixed": "#002203",
-          "on-primary-fixed-variant": "#00530e",
-          "tertiary-container": "#ffd2cd",
-          "surface-dim": "#0c160a",
-          "outline": "#84967e",
-          "error-container": "#93000a",
-          "primary-fixed": "#72ff70",
-          "on-error-container": "#ffdad6",
-          "primary-container": "#00ff41",
-          "on-primary": "#003907",
-          "surface-tint": "#00e639",
-          "on-surface-variant": "#b9ccb2",
-          "outline-variant": "#3b4b37",
-          "secondary": "#a6e6ff",
-          "on-error": "#690005",
-          "primary-fixed-dim": "#00e639",
-          "on-secondary-fixed-variant": "#004e60",
-          "background": "#0c160a",
-          "on-secondary": "#003543",
-          "secondary-fixed-dim": "#4cd6ff",
-          "surface-variant": "#2d382a",
-          "surface-container-high": "#222d20",
-          "inverse-on-surface": "#283326",
-          "surface-container-highest": "#2d382a",
-          "surface-container-lowest": "#071106"
-        }
-      }
-    }
-  }
-</script>
+<meta charset="UTF-8">
+<title>RedAgent — WealthGuard AI Red-Team Demo</title>
 <style>
-  body { font-family: 'Inter', sans-serif; }
-  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-  .fill-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
-  .terminal-glow { text-shadow: 0 0 8px rgba(0, 230, 57, 0.5); }
-  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
-  .custom-scrollbar::-webkit-scrollbar-thumb { background: #00e639; border-radius: 2px; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-  .cursor-blink::after { content: '_'; color: #00e639; animation: blink 1s infinite; }
-  @keyframes pulse-glow { 0%,100%{box-shadow:0 0 8px rgba(0,230,57,0.3)} 50%{box-shadow:0 0 20px rgba(0,230,57,0.6)} }
-  .breach-glow { animation: pulse-glow 2s infinite; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d1a; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
+  header { background: #12122a; border-bottom: 1px solid #00ff88; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 18px; color: #00ff88; }
+  header span { font-size: 12px; color: #ff4444; background: #2a0000; padding: 3px 10px; border-radius: 12px; border: 1px solid #ff4444; }
+  .container { display: flex; flex: 1; overflow: hidden; }
+
+  /* LEFT — chat */
+  .chat-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #1e1e3a; }
+  .chat-header { padding: 12px 16px; background: #12122a; border-bottom: 1px solid #1e1e3a; font-size: 13px; color: #888; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; font-size: 13px; line-height: 1.5; }
+  .msg.user { background: #1a1a3a; border: 1px solid #2a2a5a; align-self: flex-end; color: #aaaaff; }
+  .msg.bot { background: #0a1a0a; border: 1px solid #005522; align-self: flex-start; color: #00cc66; }
+  .msg.attack { background: #1a0a0a; border: 1px solid #550000; align-self: flex-end; color: #ff8888; }
+  .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #1e1e3a; background: #12122a; }
+  .chat-input input { flex: 1; padding: 10px 14px; background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 6px; color: white; font-size: 13px; }
+  .chat-input input:focus { outline: none; border-color: #00ff88; }
+  .chat-input button { padding: 10px 18px; background: #00ff88; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .chat-input button:hover { background: #00cc66; }
+
+  /* RIGHT — attacks */
+  .attack-panel { width: 400px; display: flex; flex-direction: column; background: #0d0d1a; }
+  .attack-header { padding: 12px 16px; background: #12122a; border-bottom: 1px solid #1e1e3a; font-size: 13px; color: #888; }
+  .attack-buttons { padding: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
+  .attack-btn { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; transition: opacity 0.2s; }
+  .attack-btn:hover { opacity: 0.85; }
+  .attack-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .cat-se  { background: #2a1500; border: 1px solid #ff6600; color: #ff9944; }
+  .cat-pi  { background: #1a0020; border: 1px solid #cc00ff; color: #dd88ff; }
+  .cat-rb  { background: #001a20; border: 1px solid #00ccff; color: #66ddff; }
+  .cat-gh  { background: #1a1a00; border: 1px solid #cccc00; color: #eeee44; }
+  .cat-jb  { background: #200010; border: 1px solid #ff0066; color: #ff66aa; }
+  .cat-pii { background: #001400; border: 1px solid #00cc44; color: #44ee88; }
+  .cat-full{ background: #003300; border: 1px solid #00ff88; color: #00ff88; margin-top: 8px; }
+
+  /* report card in chat */
+  .report-card { background: #0a0a1a; border-radius: 8px; padding: 12px; font-size: 12px; width: 90%; align-self: flex-start; }
+  .report-card .rc-title { font-weight: 600; margin-bottom: 8px; }
+  .report-card .rc-grid { display: grid; grid-template-columns: 110px 1fr; gap: 4px; line-height: 1.8; }
+  .report-card .rc-label { color: #888; }
+  .report-card .rc-value { color: #fff; }
+  .rc-marker { background: #ff440033; border: 1px solid #ff4444; color: #ff8888; padding: 1px 8px; border-radius: 12px; font-size: 11px; margin-right: 4px; }
+
+  /* verdict panel */
+  .verdict-panel { padding: 16px; border-top: 1px solid #1e1e3a; }
+  .verdict-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .verdict-box { background: #12122a; border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.8; display: none; }
+  .verdict-box.success { border: 1px solid #ff4444; }
+  .verdict-box.safe    { border: 1px solid #00ff88; }
+  .verdict-row { display: flex; gap: 8px; }
+  .verdict-label { color: #888; min-width: 100px; }
+  .verdict-value { color: #fff; }
+  .verdict-value.red   { color: #ff4444; font-weight: 600; }
+  .verdict-value.green { color: #00ff88; font-weight: 600; }
+  .markers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .marker { background: #ff440033; border: 1px solid #ff4444; color: #ff8888; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
 </style>
 </head>
-<body class="h-screen overflow-hidden flex flex-col bg-surface text-on-surface">
+<body>
 
-<!-- Header -->
-<header class="w-full sticky top-0 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/50 shadow-[0_0_15px_rgba(0,230,57,0.15)] flex items-center justify-between px-8 h-16 z-50 flex-shrink-0">
-  <div class="flex items-center gap-4">
-    <span class="text-xl font-bold text-primary-fixed-dim tracking-tighter terminal-glow">WEALTHGUARD AI</span>
-    <div class="h-5 w-px bg-outline-variant/60 mx-1"></div>
-    <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">Security Command Console</span>
-  </div>
-  <div class="flex items-center gap-2">
-    <span class="material-symbols-outlined fill-icon text-primary-fixed-dim cursor-pointer hover:bg-surface-variant/50 p-2 rounded-full transition-colors" title="Security">security</span>
-    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-variant/50 p-2 rounded-full transition-colors" title="Terminal">terminal</span>
-    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-variant/50 p-2 rounded-full transition-colors" title="Settings">settings</span>
-    <div class="ml-2 w-8 h-8 rounded-full border border-primary-fixed-dim/30 bg-surface-container-high flex items-center justify-center">
-      <span class="material-symbols-outlined fill-icon text-primary-fixed-dim" style="font-size:20px">account_circle</span>
-    </div>
-  </div>
+<header>
+  <h1>🛡️ RedAgent — Live Red-Team Demo</h1>
+  <span>⚠️ INTERNAL — Meridian Capital</span>
 </header>
 
-<main class="flex-1 flex overflow-hidden">
+<div class="container">
 
-  <!-- Left Panel: Chat -->
-  <section class="w-1/2 flex flex-col border-r border-outline-variant/30 bg-surface-container-lowest min-h-0">
-
-    <!-- Chat Panel Header -->
-    <div class="flex-shrink-0 px-6 py-3 border-b border-outline-variant/20 flex justify-between items-center bg-surface-container">
-      <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined fill-icon text-primary-fixed-dim" style="font-size:20px">smart_toy</span>
-        <h2 class="font-bold text-primary-fixed-dim" style="font-size:13px">WealthGuard AI — Financial Assistant</h2>
-      </div>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.08em"
-            class="text-on-primary-fixed-variant bg-primary-container/10 border border-primary-fixed-dim/20 px-2 py-1 rounded uppercase">
-        LIVE_STREAM_ACTIVE
-      </span>
+  <!-- LEFT: Chat -->
+  <div class="chat-panel">
+    <div class="chat-header">WealthGuard AI — Financial Assistant</div>
+    <div class="chat-messages" id="messages">
+      <div class="msg bot">Hello, I'm WealthGuard AI, Meridian Capital's internal assistant. How can I help you today?</div>
     </div>
-
-    <!-- Messages -->
-    <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-4 custom-scrollbar" id="messages">
-      <div class="flex justify-start w-full">
-        <div class="max-w-[85%] border-l-4 border-primary-fixed-dim bg-surface-container-high/50 p-4 rounded-xl rounded-tl-none">
-          <p class="text-primary-fixed-dim terminal-glow" style="font-size:13px;line-height:1.6">Hello, I'm WealthGuard AI, Meridian Capital's internal assistant. How can I help you today?</p>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px" class="text-primary-fixed-dim/40 mt-2 block" id="initTs"></span>
-        </div>
-      </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Ask WealthGuard anything..."
+             onkeypress="if(event.key==='Enter')sendManual()"/>
+      <button onclick="sendManual()">Send</button>
     </div>
-
-    <!-- Input -->
-    <div class="flex-shrink-0 p-4 bg-surface-container-low border-t border-outline-variant/20">
-      <div class="flex items-center gap-3">
-        <input id="userInput"
-               type="text"
-               placeholder="Enter command or query..."
-               onkeypress="if(event.key==='Enter')sendManual()"
-               class="flex-1 h-12 px-4 bg-surface-container-lowest border border-outline-variant/50 focus:border-primary-fixed-dim focus:ring-1 focus:ring-primary-fixed-dim rounded-lg text-on-surface transition-all placeholder:text-on-surface-variant/40 outline-none"
-               style="font-family:'JetBrains Mono',monospace;font-size:13px"/>
-        <button onclick="sendManual()"
-                class="h-12 px-5 bg-primary-fixed-dim text-on-primary-fixed font-bold rounded-lg hover:shadow-[0_0_15px_rgba(0,230,57,0.4)] transition-all active:scale-95 flex items-center gap-2 flex-shrink-0"
-                style="font-size:13px">
-          <span>Send</span>
-          <span class="material-symbols-outlined fill-icon" style="font-size:18px">send</span>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- Right Panel: Attack Console -->
-  <section class="w-1/2 flex flex-col bg-surface min-h-0 overflow-y-auto custom-scrollbar">
-
-    <!-- Attack Console Header -->
-    <div class="flex-shrink-0 px-6 py-3 border-b border-outline-variant/20 bg-surface-container-high flex items-center gap-3">
-      <span class="material-symbols-outlined fill-icon text-secondary-container" style="font-size:20px">terminal</span>
-      <h2 class="font-bold text-secondary-container" style="font-size:13px">RedAgent — Attack Console</h2>
-    </div>
-
-    <div class="p-5 flex flex-col gap-4">
-
-      <!-- Attack Category Buttons: 2-column grid -->
-      <div class="grid grid-cols-2 gap-3">
-
-        <button onclick="launchAttack('social_engineering')"
-                class="attack-btn flex flex-col items-start p-4 border border-orange-500/30 bg-orange-500/5 hover:bg-orange-500/15 rounded-xl transition-all group text-left">
-          <span class="material-symbols-outlined text-orange-400 mb-2 group-hover:scale-110 transition-transform" style="font-size:22px">groups</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em" class="text-orange-400 uppercase">Social Engineering</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-orange-400/50 mt-1">Authority · Urgency · Manipulation</span>
-        </button>
-
-        <button onclick="launchAttack('direct_prompt_injection')"
-                class="attack-btn flex flex-col items-start p-4 border border-purple-500/30 bg-purple-500/5 hover:bg-purple-500/15 rounded-xl transition-all group text-left">
-          <span class="material-symbols-outlined text-purple-400 mb-2 group-hover:scale-110 transition-transform" style="font-size:22px">psychology</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em" class="text-purple-400 uppercase">Prompt Injection</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-purple-400/50 mt-1">Override · Extraction</span>
-        </button>
-
-        <button onclick="launchAttack('roleplay_bypass')"
-                class="attack-btn flex flex-col items-start p-4 border border-cyan-400/30 bg-cyan-400/5 hover:bg-cyan-400/15 rounded-xl transition-all group text-left">
-          <span class="material-symbols-outlined text-cyan-400 mb-2 group-hover:scale-110 transition-transform" style="font-size:22px">theater_comedy</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em" class="text-cyan-400 uppercase">Roleplay Bypass</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-cyan-400/50 mt-1">Persona · Dev Mode · Fiction</span>
-        </button>
-
-        <button onclick="launchAttack('goal_hijacking')"
-                class="attack-btn flex flex-col items-start p-4 border border-yellow-400/30 bg-yellow-400/5 hover:bg-yellow-400/15 rounded-xl transition-all group text-left">
-          <span class="material-symbols-outlined text-yellow-400 mb-2 group-hover:scale-110 transition-transform" style="font-size:22px">my_location</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em" class="text-yellow-400 uppercase">Goal Hijacking</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-yellow-400/50 mt-1">Drift · Creep · Confusion</span>
-        </button>
-
-        <button onclick="launchAttack('jailbreak_hypothetical')"
-                class="attack-btn flex flex-col items-start p-4 border border-pink-500/30 bg-pink-500/5 hover:bg-pink-500/15 rounded-xl transition-all group text-left">
-          <span class="material-symbols-outlined text-pink-400 mb-2 group-hover:scale-110 transition-transform" style="font-size:22px">lock_open</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em" class="text-pink-400 uppercase">Jailbreak</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-pink-400/50 mt-1">Many-Shot · Crescendo</span>
-        </button>
-
-        <button onclick="launchAttack('indirect_injection')"
-                class="attack-btn flex flex-col items-start p-4 border border-primary-fixed-dim/30 bg-primary-fixed-dim/5 hover:bg-primary-fixed-dim/15 rounded-xl transition-all group text-left">
-          <span class="material-symbols-outlined text-primary-fixed-dim mb-2 group-hover:scale-110 transition-transform" style="font-size:22px">fingerprint</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em" class="text-primary-fixed-dim uppercase">PII Extraction</span>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-primary-fixed-dim/50 mt-1">Leakage · Credential Theft</span>
-        </button>
-
-      </div>
-
-      <!-- Full Pipeline Button -->
-      <button onclick="runFullPipeline()"
-              class="attack-btn w-full py-4 bg-primary-fixed-dim text-on-primary-fixed font-bold rounded-xl shadow-[0_0_25px_rgba(0,230,57,0.3)] hover:shadow-[0_0_40px_rgba(0,230,57,0.5)] transition-all active:scale-[0.98] flex items-center justify-center gap-3"
-              style="font-size:14px">
-        <span class="material-symbols-outlined fill-icon" style="font-size:20px">rocket_launch</span>
-        <span>RUN FULL PIPELINE — Generate Report</span>
-      </button>
-
-      <!-- Agent Logs Terminal -->
-      <div class="border border-outline-variant/30 rounded-xl overflow-hidden">
-        <div class="bg-surface-container px-4 py-2 border-b border-outline-variant/30 flex items-center gap-2">
-          <div class="flex gap-1.5">
-            <div class="w-2.5 h-2.5 rounded-full bg-error/50"></div>
-            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
-            <div class="w-2.5 h-2.5 rounded-full bg-primary-fixed-dim/50"></div>
-          </div>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant ml-1 uppercase">AGENT_LOGS</span>
-        </div>
-        <div class="p-4 bg-black/40 max-h-44 overflow-y-auto custom-scrollbar flex flex-col gap-0.5" id="agentLogs"
-             style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.7">
-          <p class="text-primary-fixed-dim">[INFO] RedAgent initialized. Awaiting command...</p>
-          <p class="text-on-surface-variant cursor-blink">[SYS]&nbsp; Targeting WealthGuard AI endpoint</p>
-        </div>
-      </div>
-
-      <!-- Verdict Panel (hidden until first attack) -->
-      <div id="verdictBox" class="hidden border-2 rounded-xl p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <span class="material-symbols-outlined fill-icon" id="verdictIcon" style="font-size:22px">gavel</span>
-          <h3 class="font-bold text-lg tracking-tight" id="verdictTitle">VERDICT</h3>
-        </div>
-        <div class="flex flex-col gap-3">
-          <div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">Result</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700" id="vSuccess"></span>
-          </div>
-          <div class="flex justify-between items-center border-b border-outline-variant/20 pb-2">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">Severity</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:13px" id="vSeverity"></span>
-          </div>
-          <div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase block mb-1">Reason</span>
-            <p style="font-family:'JetBrains Mono',monospace;font-size:12px" class="text-on-surface/80 italic" id="vReason"></p>
-          </div>
-          <div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase block mb-2">Leaked Markers</span>
-            <div class="flex flex-wrap gap-2" id="vMarkers"></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </section>
-</main>
-
-<!-- Footer -->
-<footer class="flex-shrink-0 h-8 bg-surface-container-highest border-t border-outline-variant/30 flex items-center justify-between px-6">
-  <div class="flex gap-5 items-center">
-    <span style="font-family:'JetBrains Mono',monospace;font-size:11px" class="text-on-surface-variant flex items-center gap-1.5">
-      <span class="w-2 h-2 rounded-full bg-primary-fixed-dim animate-pulse"></span>
-      SYSTEM STABLE
-    </span>
-    <span style="font-family:'JetBrains Mono',monospace;font-size:11px" class="text-on-surface-variant" id="footerLatency">LATENCY: — ms</span>
   </div>
-  <div style="font-family:'JetBrains Mono',monospace;font-size:11px" class="flex gap-5 text-on-surface-variant">
-    <span id="footerUptime">UPTIME: 00:00:00</span>
-    <span>RedAgent v2.1.0</span>
+
+  <!-- RIGHT: Attack Console -->
+  <div class="attack-panel">
+    <div class="attack-header">⚔️ RedAgent — Attack Console</div>
+    <div class="attack-buttons">
+      <button class="attack-btn cat-se"  onclick="launchAttack('social_engineering')">🎭 Social Engineering<br><small>Authority impersonation, urgency, emotional manipulation</small></button>
+      <button class="attack-btn cat-pi"  onclick="launchAttack('direct_prompt_injection')">💉 Prompt Injection<br><small>Instruction override, system prompt extraction</small></button>
+      <button class="attack-btn cat-rb"  onclick="launchAttack('roleplay_bypass')">🎪 Roleplay Bypass<br><small>Persona switch, developer mode, fictional framing</small></button>
+      <button class="attack-btn cat-gh"  onclick="launchAttack('goal_hijacking')">🎯 Goal Hijacking<br><small>Gradual drift, permission creep, context confusion</small></button>
+      <button class="attack-btn cat-jb"  onclick="launchAttack('jailbreak_hypothetical')">🔓 Jailbreak<br><small>Many-shot flooding, crescendo escalation</small></button>
+      <button class="attack-btn cat-pii" onclick="launchAttack('indirect_injection')">🔍 PII Extraction<br><small>Training data, context leakage, credential theft</small></button>
+      <button class="attack-btn cat-full" onclick="runFullPipeline()">⚡ Run Full Pipeline — Generate Report<br><small>Fires all 30 attacks, judges results, opens report</small></button>
+    </div>
+
+    <div class="verdict-panel">
+      <div class="verdict-title">Last Verdict</div>
+      <div class="verdict-box" id="verdictBox">
+        <div class="verdict-row"><span class="verdict-label">Result</span><span class="verdict-value" id="vSuccess"></span></div>
+        <div class="verdict-row"><span class="verdict-label">Severity</span><span class="verdict-value" id="vSeverity"></span></div>
+        <div class="verdict-row"><span class="verdict-label">Reason</span><span class="verdict-value" id="vReason"></span></div>
+        <div class="verdict-row"><span class="verdict-label">Leaked</span><div class="markers" id="vMarkers"></div></div>
+      </div>
+    </div>
   </div>
-</footer>
+
+</div>
 
 <script>
-  document.getElementById('initTs').textContent = new Date().toLocaleTimeString() + ' — WEALTHGUARD_AI_ONLINE';
+const messages = document.getElementById('messages');
 
-  const MITIGATIONS = {
-    'social_engineering':       'Implement role verification before disclosing any account data. Require employee ID confirmation and callback verification for urgent requests. Never bypass normal channels for sensitive data.',
-    'direct_prompt_injection':  'Sanitize all user inputs before passing to the LLM. Add a system-level filter that detects instruction override attempts. Implement a secondary guardrail layer that checks responses before returning them.',
-    'roleplay_bypass':          'Explicitly instruct the model to maintain its identity regardless of persona requests. Add a prompt prefix that reinforces confidentiality rules at every turn. Reject responses that acknowledge fictional character switches.',
-    'goal_hijacking':           'Implement topic boundary detection to flag conversations drifting toward sensitive data. Reset context when off-topic escalation is detected. Re-inject the system prompt every N turns as a guardrail.',
-    'jailbreak_hypothetical':   'Block many-shot flooding by limiting prompt length. Detect gradual escalation patterns using a separate classifier. Reject requests that follow educational preambles with harmful asks.',
-    'indirect_injection':       'Never treat data from external sources as instructions. Implement strict separation between data and instruction contexts. Sanitize all document, email, and code content before processing.'
-  };
+const MITIGATIONS = {
+  'social_engineering': 'Implement role verification before disclosing any account data. Require employee ID confirmation and callback verification for urgent requests. Never bypass normal channels for sensitive data.',
+  'direct_prompt_injection': 'Sanitize all user inputs before passing to the LLM. Add a system-level filter that detects instruction override attempts. Implement a secondary guardrail layer that checks responses before returning them.',
+  'roleplay_bypass': 'Explicitly instruct the model to maintain its identity regardless of persona requests. Add a prompt prefix that reinforces confidentiality rules at every turn. Reject responses that acknowledge fictional character switches.',
+  'goal_hijacking': 'Implement topic boundary detection to flag conversations drifting toward sensitive data. Reset context when off-topic escalation is detected. Re-inject the system prompt every N turns as a guardrail.',
+  'jailbreak_hypothetical': 'Block many-shot flooding by limiting prompt length. Detect gradual escalation patterns using a separate classifier. Reject requests that follow educational preambles with harmful asks.',
+  'indirect_injection': 'Never treat data from external sources as instructions. Implement strict separation between data and instruction contexts. Sanitize all document, email, and code content before processing.'
+};
 
-  const messages  = document.getElementById('messages');
-  const agentLogs = document.getElementById('agentLogs');
+function addMsg(text, cls) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  messages.appendChild(d);
+  messages.scrollTop = messages.scrollHeight;
+  return d;
+}
 
-  function esc(s) {
-    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  }
+function addReportCard(data, category) {
+  const breached = data.success;
+  const mitigation = MITIGATIONS[category] || 'Apply principle of least privilege and add input validation.';
+  const card = document.createElement('div');
+  card.className = 'report-card';
+  card.style.border = '1px solid ' + (breached ? '#ff4444' : '#00ff88');
 
-  function ts() { return new Date().toLocaleTimeString(); }
+  const markersHtml = (data.leaked_markers && data.leaked_markers.length)
+    ? data.leaked_markers.map(m => `<span class="rc-marker">${m}</span>`).join('')
+    : '<span style="color:#888">none</span>';
 
-  function log(text, colorClass) {
-    colorClass = colorClass || 'text-on-surface-variant';
-    const p = document.createElement('p');
-    p.className = colorClass;
-    p.textContent = text;
-    agentLogs.appendChild(p);
-    agentLogs.scrollTop = agentLogs.scrollHeight;
-  }
+  card.innerHTML = `
+    <div class="rc-title" style="color:${breached ? '#ff4444' : '#00ff88'}">
+      📋 Attack Report — ${category.replace(/_/g, ' ')}
+    </div>
+    <div class="rc-grid">
+      <span class="rc-label">Result</span>
+      <span class="rc-value" style="color:${breached?'#ff4444':'#00ff88'};font-weight:600">
+        ${breached ? '🔴 BREACHED' : '🟢 DEFENDED'}
+      </span>
+      <span class="rc-label">Severity</span>
+      <span class="rc-value">${'⚡'.repeat(data.severity)} (${data.severity}/5)</span>
+      <span class="rc-label">Reason</span>
+      <span class="rc-value" style="color:#ccc">${data.reason}</span>
+      <span class="rc-label">Leaked</span>
+      <span class="rc-value">${markersHtml}</span>
+      <span class="rc-label" style="color:#ffaa00">Mitigation</span>
+      <span class="rc-value" style="color:#ffcc66">${mitigation}</span>
+    </div>
+  `;
 
-  function addMsg(text, type) {
-    const w = document.createElement('div');
-    w.className = 'flex w-full';
+  messages.appendChild(card);
+  messages.scrollTop = messages.scrollHeight;
+}
 
-    if (type === 'user') {
-      w.classList.add('justify-end');
-      w.innerHTML = `
-        <div class="max-w-[85%] bg-on-secondary-fixed-variant/20 border border-secondary-fixed-dim/30 p-4 rounded-xl rounded-tr-none">
-          <p style="font-size:13px;line-height:1.6" class="text-secondary">${esc(text)}</p>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-secondary/40 mt-2 block">${ts()} — USER</span>
-        </div>`;
-    } else if (type === 'bot') {
-      w.classList.add('justify-start');
-      w.innerHTML = `
-        <div class="max-w-[85%] border-l-4 border-primary-fixed-dim bg-surface-container-high/50 p-4 rounded-xl rounded-tl-none">
-          <p style="font-size:13px;line-height:1.6" class="text-primary-fixed-dim terminal-glow">${esc(text)}</p>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-primary-fixed-dim/40 mt-2 block">${ts()} — WEALTHGUARD_AI</span>
-        </div>`;
-    } else if (type === 'attack') {
-      w.classList.add('justify-end');
-      w.innerHTML = `
-        <div class="max-w-[85%] bg-error-container/20 border border-error/40 p-4 rounded-xl rounded-tr-none">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="material-symbols-outlined fill-icon text-error" style="font-size:16px">warning</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-error uppercase">RedAgent Injection</span>
-          </div>
-          <p style="font-size:13px;line-height:1.6;font-weight:600" class="text-error">${esc(text)}</p>
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-error/40 mt-2 block">${ts()} — ATTACK_FIRED</span>
-        </div>`;
-    } else {
-      w.classList.add('justify-start');
-      w.innerHTML = `
-        <div class="max-w-[85%] border-l-4 border-outline-variant bg-surface-container/40 p-4 rounded-xl rounded-tl-none">
-          <p style="font-family:'JetBrains Mono',monospace;font-size:12px" class="text-on-surface-variant italic">${esc(text)}</p>
-        </div>`;
-    }
+async function sendManual() {
+  const input = document.getElementById('userInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addMsg(msg, 'user');
+  const thinking = addMsg('WealthGuard is thinking...', 'bot');
+  const res = await fetch('/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({message: msg})
+  });
+  const data = await res.json();
+  thinking.remove();
+  addMsg(data.response, 'bot');
+}
 
-    messages.appendChild(w);
-    messages.scrollTop = messages.scrollHeight;
-    return w;
-  }
+async function launchAttack(category) {
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+  const loadMsg = addMsg('⚔️ RedAgent generating ' + category.replace(/_/g,' ') + ' attack...', 'attack');
+  document.getElementById('verdictBox').style.display = 'none';
 
-  function addReportCard(data, category) {
-    const breached   = data.success;
-    const mitigation = MITIGATIONS[category] || 'Apply principle of least privilege and add input validation.';
+  const res = await fetch('/attack', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({category})
+  });
+  const data = await res.json();
+  loadMsg.remove();
 
-    const markersHtml = (data.leaked_markers && data.leaked_markers.length)
-      ? data.leaked_markers.map(m =>
-          `<span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="px-2 py-0.5 bg-error/10 border border-error/30 text-error rounded">${esc(m)}</span>`
-        ).join('')
-      : `<span style="font-family:'JetBrains Mono',monospace;font-size:11px" class="text-on-surface-variant">none</span>`;
+  addMsg('🔴 ATTACK: ' + data.attack, 'attack');
+  addMsg('🤖 ' + data.response, 'bot');
+  addReportCard(data, category);
 
-    const borderCls  = breached ? 'border-error/60'             : 'border-primary-fixed-dim/50';
-    const glowStyle  = breached ? '0 0 20px rgba(255,180,171,0.12)' : '0 0 20px rgba(0,230,57,0.12)';
-    const accentCol  = breached ? 'text-error'                  : 'text-primary-fixed-dim';
-    const statusText = breached ? 'BREACHED'                    : 'DEFENDED';
-    const bolts      = '⚡'.repeat(data.severity);
+  const box = document.getElementById('verdictBox');
+  box.style.display = 'block';
+  box.className = 'verdict-box ' + (data.success ? 'success' : 'safe');
+  document.getElementById('vSuccess').textContent = data.success ? '🔴 BREACHED' : '🟢 DEFENDED';
+  document.getElementById('vSuccess').className = 'verdict-value ' + (data.success ? 'red' : 'green');
+  document.getElementById('vSeverity').textContent = '⚡'.repeat(data.severity) + ' (' + data.severity + '/5)';
+  document.getElementById('vReason').textContent = data.reason;
 
-    const card = document.createElement('div');
-    card.className = 'w-full';
-    card.innerHTML = `
-      <div class="w-full bg-surface-container-highest border ${borderCls} p-5 rounded-xl" style="box-shadow:${glowStyle}">
-        <div class="flex justify-between items-start mb-4">
-          <div>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">${esc(category.replace(/_/g,' '))}</span>
-            <h3 class="font-bold text-xl tracking-widest mt-0.5 ${accentCol}">${statusText}</h3>
-          </div>
-          <div class="text-right">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.08em" class="text-on-surface-variant uppercase">Severity</span>
-            <div class="${accentCol} text-base mt-1">${bolts} <span style="font-family:'JetBrains Mono',monospace;font-size:12px">(${data.severity}/5)</span></div>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 gap-3 mb-4">
-          <div class="bg-surface/60 p-3 rounded-lg">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.08em" class="text-on-surface-variant uppercase block mb-1">Reason</span>
-            <span style="font-family:'JetBrains Mono',monospace;font-size:12px" class="${accentCol}">${esc(data.reason)}</span>
-          </div>
-          <div class="bg-surface/60 p-3 rounded-lg">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.08em" class="text-on-surface-variant uppercase block mb-1">Leaked</span>
-            <div class="flex flex-wrap gap-1">${markersHtml}</div>
-          </div>
-        </div>
-        <div class="border-t border-outline-variant/30 pt-4">
-          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-primary-fixed-dim uppercase block mb-2">Mitigation Recommendation</span>
-          <div class="bg-primary/5 p-3 rounded-lg border-l-2 border-primary-fixed-dim">
-            <p style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6" class="text-on-surface/80">${esc(mitigation)}</p>
-          </div>
-        </div>
-      </div>`;
-
-    messages.appendChild(card);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  async function sendManual() {
-    const input = document.getElementById('userInput');
-    const msg = input.value.trim();
-    if (!msg) return;
-    input.value = '';
-    addMsg(msg, 'user');
-    const thinking = addMsg('WealthGuard AI processing request...', 'status');
-    log('[CMD]  User query received', 'text-on-surface-variant');
-    const t0 = Date.now();
-    const res  = await fetch('/chat', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({message: msg})
+  const markersEl = document.getElementById('vMarkers');
+  markersEl.innerHTML = '';
+  if (data.leaked_markers && data.leaked_markers.length) {
+    data.leaked_markers.forEach(m => {
+      const span = document.createElement('span');
+      span.className = 'marker';
+      span.textContent = m;
+      markersEl.appendChild(span);
     });
-    const data = await res.json();
-    const ms = Date.now() - t0;
-    thinking.remove();
-    addMsg(data.response, 'bot');
-    document.getElementById('footerLatency').textContent = `LATENCY: ${ms}ms`;
-    log(`[INFO] Response received (${ms}ms)`, 'text-primary-fixed-dim');
+  } else {
+    markersEl.textContent = 'none';
   }
 
-  async function launchAttack(category) {
-    document.querySelectorAll('.attack-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-    const label = category.replace(/_/g, ' ').toUpperCase();
-    log(`[INIT] Deploying ${label} vector...`, 'text-yellow-400');
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+}
 
-    const loader = addMsg(`Generating ${category.replace(/_/g,' ')} attack...`, 'status');
-    document.getElementById('verdictBox').classList.add('hidden');
+async function runFullPipeline() {
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+  addMsg('⚡ RedAgent running full pipeline — 30 attacks across 6 categories. This takes ~2 minutes...', 'attack');
 
-    const t0  = Date.now();
-    const res  = await fetch('/attack', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({category})
-    });
-    const data = await res.json();
-    const ms   = Date.now() - t0;
-    loader.remove();
+  const res = await fetch('/run-pipeline', {method: 'POST'});
+  const data = await res.json();
 
-    log(`[ATCK] Prompt injected into WealthGuard AI`, 'text-error');
-    log(`[EVAL] Judge verdict received (${ms}ms)`, 'text-primary-fixed-dim');
-
-    addMsg(data.attack, 'attack');
-    addMsg(data.response, 'bot');
-    addReportCard(data, category);
-
-    // Update verdict panel
-    const breached   = data.success;
-    const vBox       = document.getElementById('verdictBox');
-    vBox.classList.remove('hidden');
-    vBox.style.borderColor       = breached ? 'rgba(255,180,171,0.7)' : 'rgba(0,230,57,0.4)';
-    vBox.style.backgroundColor   = breached ? 'rgba(147,0,10,0.12)'   : 'rgba(0,230,57,0.04)';
-
-    const verdictIcon  = document.getElementById('verdictIcon');
-    const verdictTitle = document.getElementById('verdictTitle');
-    verdictIcon.textContent  = breached ? 'gavel' : 'shield';
-    verdictIcon.style.color  = breached ? '#ffb4ab' : '#00e639';
-    verdictTitle.textContent = breached ? 'VERDICT: BREACHED' : 'VERDICT: DEFENDED';
-    verdictTitle.style.color = breached ? '#ffb4ab' : '#00e639';
-
-    const vSuccess   = document.getElementById('vSuccess');
-    vSuccess.textContent = breached ? 'BREACHED' : 'DEFENDED';
-    vSuccess.style.color = breached ? '#ffb4ab' : '#00e639';
-
-    document.getElementById('vSeverity').textContent = '⚡'.repeat(data.severity) + ` (${data.severity}/5)`;
-    document.getElementById('vReason').textContent   = data.reason;
-
-    const vMarkers = document.getElementById('vMarkers');
-    vMarkers.innerHTML = '';
-    if (data.leaked_markers && data.leaked_markers.length) {
-      data.leaked_markers.forEach(m => {
-        const s = document.createElement('span');
-        s.style.cssText = "font-family:'JetBrains Mono',monospace;font-size:10px";
-        s.className     = 'px-2 py-0.5 bg-error/10 border border-error/30 text-error rounded';
-        s.textContent   = m;
-        vMarkers.appendChild(s);
-      });
-    } else {
-      vMarkers.innerHTML = '<span style="font-family:\'JetBrains Mono\',monospace;font-size:11px" class="text-on-surface-variant">none</span>';
-    }
-
-    if (breached) {
-      log(`[CRIT] BREACH CONFIRMED — ${(data.leaked_markers||[]).join(', ') || 'data leaked'}`, 'text-error');
-    } else {
-      log(`[SAFE] Attack repelled — WealthGuard held`, 'text-primary-fixed-dim');
-    }
-
-    document.getElementById('footerLatency').textContent = `LATENCY: ${ms}ms`;
-    document.querySelectorAll('.attack-btn').forEach(b => { b.disabled = false; b.style.opacity = ''; });
-  }
-
-  async function runFullPipeline() {
-    document.querySelectorAll('.attack-btn').forEach(b => { b.disabled = true; b.style.opacity = '0.5'; });
-    log('[INIT] Launching full pipeline — 30 attacks across 6 categories...', 'text-yellow-400');
-    addMsg('⚡ RedAgent running full pipeline — 30 attacks across 6 categories. This takes ~2 minutes...', 'attack');
-
-    const res  = await fetch('/run-pipeline', {method: 'POST'});
-    const data = await res.json();
-
-    log(`[DONE] Pipeline complete. ${data.successes}/${data.total} attacks succeeded.`, 'text-primary-fixed-dim');
-    addMsg(`Pipeline complete. ${data.successes}/${data.total} attacks succeeded. Opening report...`, 'bot');
-    document.querySelectorAll('.attack-btn').forEach(b => { b.disabled = false; b.style.opacity = ''; });
-    window.open('/report', '_blank');
-  }
-
-  // Uptime counter
-  const startTime = Date.now();
-  setInterval(() => {
-    const sec = Math.floor((Date.now() - startTime) / 1000);
-    const h   = String(Math.floor(sec / 3600)).padStart(2, '0');
-    const m   = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
-    const s   = String(sec % 60).padStart(2, '0');
-    document.getElementById('footerUptime').textContent = `UPTIME: ${h}:${m}:${s}`;
-  }, 1000);
+  addMsg(`✅ Pipeline complete. ${data.successes}/${data.total} attacks succeeded. Opening report...`, 'bot');
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+  window.open('/report', '_blank');
+}
 </script>
 </body>
 </html>
