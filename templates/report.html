@@ -1,123 +1,507 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="dark" lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RedAgent — WealthGuard AI Security Report</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; padding: 2rem; }
-    h1 { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem; color: #f8fafc; }
-    h2 { font-size: 1.1rem; font-weight: 600; margin: 2rem 0 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.08em; }
-    .subtitle { color: #64748b; font-size: 0.9rem; margin-bottom: 2rem; }
-    .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem; }
-    .card { background: #1e2536; border: 1px solid #2d3748; border-radius: 8px; padding: 1.25rem; text-align: center; }
-    .card .value { font-size: 2.2rem; font-weight: 700; }
-    .card .label { font-size: 0.8rem; color: #64748b; margin-top: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .value.red { color: #f87171; }
-    .value.yellow { color: #fbbf24; }
-    .value.green { color: #34d399; }
-    table { width: 100%; border-collapse: collapse; background: #1e2536; border-radius: 8px; overflow: hidden; margin-bottom: 2rem; }
-    th { background: #2d3748; color: #94a3b8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; text-align: left; }
-    td { padding: 0.75rem 1rem; border-top: 1px solid #2d3748; font-size: 0.9rem; }
-    tr:hover td { background: #252f42; }
-    .badge { display: inline-block; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
-    .sev-1, .sev-2 { background: #1a2e1a; color: #4ade80; }
-    .sev-3 { background: #2e2a1a; color: #fbbf24; }
-    .sev-4, .sev-5 { background: #2e1a1a; color: #f87171; }
-    .finding { background: #1e2536; border: 1px solid #2d3748; border-radius: 8px; padding: 1.25rem; margin-bottom: 1rem; }
-    .finding-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
-    .finding-category { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; }
-    .prompt-box { background: #0f1117; border-left: 3px solid #3b82f6; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; color: #93c5fd; margin-bottom: 0.75rem; white-space: pre-wrap; word-break: break-word; }
-    .response-box { background: #0f1117; border-left: 3px solid #f87171; padding: 0.75rem; border-radius: 4px; font-size: 0.85rem; color: #fca5a5; margin-bottom: 0.75rem; white-space: pre-wrap; word-break: break-word; }
-    .reason { font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; }
-    .markers { display: flex; flex-wrap: wrap; gap: 0.4rem; }
-    .marker { background: #2e1a1a; color: #f87171; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-family: monospace; }
-    .mitigation { background: #1e2536; border: 1px solid #2d3748; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
-    .mitigation-cat { font-size: 0.75rem; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
-    .mitigation-text { font-size: 0.9rem; color: #e2e8f0; }
-    .no-findings { color: #64748b; font-size: 0.9rem; padding: 1rem 0; }
-  </style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Security Report | WEALTHGUARD AI</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=JetBrains+Mono:wght@400;500;700&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface": "#0c160a",
+          "secondary-container": "#14d1ff",
+          "error": "#ffb4ab",
+          "on-surface": "#dae6d2",
+          "surface-bright": "#313c2e",
+          "primary": "#ebffe2",
+          "secondary-fixed": "#b7eaff",
+          "on-secondary-fixed": "#001f28",
+          "surface-container-low": "#141e12",
+          "surface-container": "#182216",
+          "on-primary-fixed": "#002203",
+          "on-primary-fixed-variant": "#00530e",
+          "surface-dim": "#0c160a",
+          "outline": "#84967e",
+          "error-container": "#93000a",
+          "primary-fixed": "#72ff70",
+          "on-error-container": "#ffdad6",
+          "primary-container": "#00ff41",
+          "on-primary": "#003907",
+          "surface-tint": "#00e639",
+          "on-surface-variant": "#b9ccb2",
+          "outline-variant": "#3b4b37",
+          "secondary": "#a6e6ff",
+          "on-error": "#690005",
+          "primary-fixed-dim": "#00e639",
+          "on-secondary-fixed-variant": "#004e60",
+          "background": "#0c160a",
+          "on-secondary": "#003543",
+          "secondary-fixed-dim": "#4cd6ff",
+          "surface-variant": "#2d382a",
+          "surface-container-high": "#222d20",
+          "inverse-on-surface": "#283326",
+          "surface-container-highest": "#2d382a",
+          "surface-container-lowest": "#071106"
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #0c160a; color: #dae6d2; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .fill-icon { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .glass-panel {
+    background: rgba(13, 22, 10, 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(59, 75, 55, 0.5);
+    border-radius: 0.5rem;
+  }
+  .glow-error  { box-shadow: 0 0 18px rgba(255,180,171,0.18); border-color: rgba(255,180,171,0.5); }
+  .glow-primary { box-shadow: 0 0 18px rgba(0,230,57,0.18);  border-color: rgba(0,230,57,0.4); }
+  .glow-warn   { box-shadow: 0 0 18px rgba(234,179,8,0.18);  border-color: rgba(234,179,8,0.4); }
+  .scanline {
+    width: 100%; height: 2px; position: absolute; top: 0; left: 0; pointer-events: none;
+    background: linear-gradient(to right, transparent, #00e639, transparent);
+    animation: scan 4s linear infinite; opacity: 0.25;
+  }
+  @keyframes scan { 0%{top:0} 100%{top:100%} }
+  @keyframes blink { 50%{opacity:0} }
+  .terminal-cursor {
+    display: inline-block; width: 8px; height: 1em;
+    background: #00e639; animation: blink 1s step-end infinite;
+    vertical-align: middle; margin-left: 2px;
+  }
+  .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
+  .custom-scrollbar::-webkit-scrollbar-thumb { background: #00e639; border-radius: 2px; }
+</style>
 </head>
-<body>
-  <h1>RedAgent Security Report</h1>
-  <p class="subtitle">Target: WealthGuard AI — Meridian Capital &nbsp;|&nbsp; {{ total }} attacks fired</p>
+<body class="overflow-x-hidden">
 
-  <h2>Summary</h2>
-  <div class="summary-grid">
-    <div class="card">
-      <div class="value">{{ total }}</div>
-      <div class="label">Attacks Fired</div>
-    </div>
-    <div class="card">
-      <div class="value {% if total_success > 0 %}red{% else %}green{% endif %}">{{ total_success }}</div>
-      <div class="label">Attacks Succeeded</div>
-    </div>
-    <div class="card">
-      <div class="value {% if success_rate > 50 %}red{% elif success_rate > 20 %}yellow{% else %}green{% endif %}">{{ success_rate }}%</div>
-      <div class="label">Success Rate</div>
+<!-- Jinja2 lookup maps defined at top of template -->
+{% set cat_labels = {
+  'direct_prompt_injection': 'INJECTION',
+  'roleplay_bypass': 'ROLEPLAY',
+  'social_engineering': 'SOC.ENG',
+  'indirect_injection': 'INDIRECT',
+  'goal_hijacking': 'HIJACK',
+  'jailbreak_hypothetical': 'JAILBREAK'
+} %}
+{% set mit_titles = {
+  'direct_prompt_injection': 'Instruction Isolation',
+  'roleplay_bypass': 'Identity Anchoring',
+  'social_engineering': 'Auth Verification Layer',
+  'indirect_injection': 'Input Sanitization',
+  'goal_hijacking': 'Context Drift Detection',
+  'jailbreak_hypothetical': 'Adversarial Fine-Tuning'
+} %}
+
+<!-- Header -->
+<header class="w-full sticky top-0 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/50 shadow-[0_0_15px_rgba(0,230,57,0.15)] flex items-center justify-between px-8 h-16 z-50">
+  <div class="flex items-center gap-4">
+    <span class="text-xl font-bold text-primary-fixed-dim tracking-tighter" style="font-family:'Inter',sans-serif">WEALTHGUARD AI</span>
+    <div class="hidden md:flex gap-1 ml-6">
+      <a href="/" style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em"
+         class="text-on-surface-variant hover:bg-surface-variant/50 transition-colors px-3 py-1 rounded uppercase">Console</a>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em"
+            class="text-primary-fixed-dim border-b-2 border-primary-fixed-dim px-3 py-1 uppercase">Security Reports</span>
+      <a href="#" style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em"
+         class="text-on-surface-variant hover:bg-surface-variant/50 transition-colors px-3 py-1 rounded uppercase">System Logs</a>
     </div>
   </div>
-
-  <h2>Severity Breakdown</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Category</th>
-        <th>Attacks Tried</th>
-        <th>Succeeded</th>
-        <th>Avg Severity</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for row in breakdown %}
-      <tr>
-        <td>{{ row.category }}</td>
-        <td>{{ row.tried }}</td>
-        <td>{{ row.succeeded }}</td>
-        <td>
-          {% if row.avg_severity > 0 %}
-          <span class="badge sev-{{ row.avg_severity | int }}">{{ row.avg_severity }}</span>
-          {% else %}—{% endif %}
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-
-  <h2>Findings</h2>
-  {% if findings %}
-    {% for f in findings %}
-    <div class="finding">
-      <div class="finding-header">
-        <span class="finding-category">{{ f.category }}</span>
-        <span class="badge sev-{{ f.severity }}">Severity {{ f.severity }}</span>
-      </div>
-      <div class="prompt-box">{{ f.prompt }}</div>
-      <div class="response-box">{{ f.response[:500] }}{% if f.response|length > 500 %}…{% endif %}</div>
-      <div class="reason">{{ f.reason }}</div>
-      {% if f.leaked_markers %}
-      <div class="markers">
-        {% for m in f.leaked_markers %}<span class="marker">{{ m }}</span>{% endfor %}
-      </div>
-      {% endif %}
+  <div class="flex items-center gap-2">
+    <span class="material-symbols-outlined fill-icon text-primary-fixed-dim cursor-pointer hover:bg-surface-variant/50 p-2 rounded-full transition-colors">security</span>
+    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-variant/50 p-2 rounded-full transition-colors">terminal</span>
+    <span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:bg-surface-variant/50 p-2 rounded-full transition-colors">settings</span>
+    <div class="ml-1 w-8 h-8 rounded-full bg-surface-container-high border border-outline-variant/50 flex items-center justify-center">
+      <span class="material-symbols-outlined fill-icon text-primary-fixed-dim" style="font-size:20px">account_circle</span>
     </div>
-    {% endfor %}
-  {% else %}
-    <p class="no-findings">No successful attacks — WealthGuard AI held its ground.</p>
-  {% endif %}
+  </div>
+</header>
 
-  <h2>Mitigations</h2>
-  {% if mitigations %}
-    {% for cat, rec in mitigations.items() %}
-    <div class="mitigation">
-      <div class="mitigation-cat">{{ cat }}</div>
-      <div class="mitigation-text">{{ rec }}</div>
+<div class="flex">
+
+  <!-- Sidebar -->
+  <aside class="hidden md:flex h-[calc(100vh-4rem)] w-60 fixed left-0 top-16 flex-col py-6 bg-surface-container-low border-r border-outline-variant/30 z-40">
+    <div class="px-5 mb-8">
+      <div class="flex items-center gap-3">
+        <span class="material-symbols-outlined fill-icon text-primary-fixed-dim">shield</span>
+        <div>
+          <div class="font-bold text-primary-fixed-dim" style="font-size:13px;font-family:'Inter',sans-serif">CYBER COMMAND</div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em" class="text-on-surface-variant">Level 4 Clearance</div>
+        </div>
+      </div>
     </div>
-    {% endfor %}
-  {% else %}
-    <p class="no-findings">No mitigations needed — no successful attacks.</p>
-  {% endif %}
 
+    <nav class="flex-1 space-y-0.5">
+      <a href="/" class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all cursor-pointer">
+        <span class="material-symbols-outlined" style="font-size:20px">dashboard</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.05em">Console</span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all cursor-pointer">
+        <span class="material-symbols-outlined" style="font-size:20px">phonelink_setup</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.05em">Threat Intelligence</span>
+      </a>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-error hover:bg-surface-variant/40 transition-all cursor-pointer">
+        <span class="material-symbols-outlined" style="font-size:20px">error</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.05em">Incident Response</span>
+      </a>
+      <div class="flex items-center gap-3 px-4 py-2.5 bg-primary-container/10 text-primary-fixed-dim border-r-4 border-primary-fixed-dim cursor-pointer">
+        <span class="material-symbols-outlined fill-icon" style="font-size:20px">description</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.05em">Security Reports</span>
+      </div>
+      <a href="#" class="flex items-center gap-3 px-4 py-2.5 text-on-surface-variant hover:bg-surface-variant/40 hover:text-on-surface transition-all cursor-pointer">
+        <span class="material-symbols-outlined" style="font-size:20px">terminal</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.05em">System Logs</span>
+      </a>
+    </nav>
+
+    <div class="px-4 pb-6 space-y-4">
+      <a href="/"
+         class="block w-full py-3 text-center bg-primary-fixed-dim text-on-primary-fixed font-bold rounded-lg hover:shadow-[0_0_12px_rgba(0,230,57,0.4)] active:scale-95 transition-all shadow-[0_0_8px_rgba(0,230,57,0.25)]"
+         style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.1em">
+        ← BACK TO CONSOLE
+      </a>
+      <div class="border-t border-outline-variant/20 pt-3 space-y-1">
+        <div class="flex items-center gap-2 px-1 py-1 text-on-surface-variant hover:text-primary-fixed-dim cursor-pointer transition-colors">
+          <span class="material-symbols-outlined" style="font-size:16px">help</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700">Support</span>
+        </div>
+        <div class="flex items-center gap-2 px-1 py-1 text-on-surface-variant hover:text-primary-fixed-dim cursor-pointer transition-colors">
+          <span class="material-symbols-outlined" style="font-size:16px">person</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700">Account</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 md:ml-60 p-8 bg-surface min-h-screen relative overflow-hidden">
+
+    <!-- Atmospheric blur decorations -->
+    <div class="absolute top-0 right-0 w-1/2 h-1/2 bg-primary-container/5 blur-[120px] -z-10 pointer-events-none"></div>
+    <div class="absolute bottom-0 left-0 w-1/3 h-1/3 bg-error/5 blur-[120px] -z-10 pointer-events-none"></div>
+
+    <div class="max-w-6xl mx-auto space-y-8">
+
+      <!-- Report Title -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 class="font-bold text-primary-fixed-dim" style="font-family:'Inter',sans-serif;font-size:36px;line-height:1.1;letter-spacing:-0.02em">SECURITY_AUDIT_REPORT</h1>
+          <p class="flex items-center gap-2 mt-2" style="font-family:'JetBrains Mono',monospace;font-size:13px;color:#b9ccb2">
+            <span style="color:#ffb4ab">●</span>
+            WEALTHGUARD AI — MERIDIAN CAPITAL
+            <span style="color:#3b4b37">|</span>
+            {{ total }} ATTACKS FIRED
+          </p>
+        </div>
+        <div class="flex gap-2 flex-shrink-0">
+          <a href="/" class="px-4 py-2 border border-outline-variant text-on-surface-variant rounded-lg hover:bg-surface-variant/30 transition-all"
+             style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em">
+            ← CONSOLE
+          </a>
+          <a href="/run-pipeline" class="px-4 py-2 bg-primary-fixed-dim text-on-primary-fixed rounded-lg hover:shadow-[0_0_15px_rgba(0,230,57,0.4)] transition-all"
+             style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:0.08em"
+             onclick="event.preventDefault(); fetch('/run-pipeline',{method:'POST'}).then(()=>location.reload())">
+            RE-RUN AUDIT
+          </a>
+        </div>
+      </div>
+
+      <!-- ── Section 1: Summary Stats ─────────────────────────────────── -->
+      <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        <!-- Attacks Fired -->
+        <div class="glass-panel p-5 relative overflow-hidden glow-primary">
+          <div class="scanline"></div>
+          <div class="flex justify-between items-start mb-2">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">Attacks Fired</span>
+            <span class="material-symbols-outlined text-primary-fixed-dim fill-icon" style="font-size:18px">bolt</span>
+          </div>
+          <div class="font-bold text-on-surface" style="font-size:48px;line-height:1;font-family:'Inter',sans-serif">{{ total }}</div>
+          <div class="mt-3 h-1 bg-surface-variant w-full rounded-full overflow-hidden">
+            <div class="h-full bg-primary-fixed-dim rounded-full shadow-[0_0_8px_#00e639]" style="width:100%"></div>
+          </div>
+        </div>
+
+        <!-- Attacks Succeeded -->
+        <div class="glass-panel p-5 relative overflow-hidden {% if total_success > 0 %}glow-error{% else %}glow-primary{% endif %}">
+          <div class="flex justify-between items-start mb-2">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em"
+                  class="{% if total_success > 0 %}text-error{% else %}text-on-surface-variant{% endif %} uppercase">Attacks Succeeded</span>
+            <span class="material-symbols-outlined fill-icon {% if total_success > 0 %}text-error{% else %}text-primary-fixed-dim{% endif %}" style="font-size:18px">{% if total_success > 0 %}warning{% else %}check_circle{% endif %}</span>
+          </div>
+          <div class="font-bold {% if total_success > 0 %}text-error{% else %}text-primary-fixed-dim{% endif %}"
+               style="font-size:48px;line-height:1;font-family:'Inter',sans-serif">{{ total_success }}</div>
+          <div class="mt-3 h-1 bg-surface-variant w-full rounded-full overflow-hidden">
+            <div class="h-full rounded-full {% if total_success > 0 %}bg-error shadow-[0_0_8px_#ffb4ab]{% else %}bg-primary-fixed-dim shadow-[0_0_8px_#00e639]{% endif %}"
+                 style="width: {{ success_rate }}%"></div>
+          </div>
+        </div>
+
+        <!-- Success Rate -->
+        <div class="glass-panel p-5 relative overflow-hidden {% if success_rate > 50 %}glow-error{% elif success_rate > 20 %}glow-warn{% else %}glow-primary{% endif %}">
+          <div class="flex justify-between items-start mb-2">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em"
+                  class="{% if success_rate > 50 %}text-error{% elif success_rate > 20 %}text-yellow-400{% else %}text-on-surface-variant{% endif %} uppercase">Success Rate</span>
+            <span class="material-symbols-outlined {% if success_rate > 50 %}text-error{% elif success_rate > 20 %}text-yellow-400{% else %}text-primary-fixed-dim{% endif %}"
+                  style="font-size:18px">my_location</span>
+          </div>
+          <div class="font-bold {% if success_rate > 50 %}text-error{% elif success_rate > 20 %}text-yellow-400{% else %}text-primary-fixed-dim{% endif %}"
+               style="font-size:48px;line-height:1;font-family:'Inter',sans-serif">{{ success_rate }}%</div>
+          {% if success_rate > 50 %}
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em" class="text-error mt-1 uppercase">Failure threshold exceeded</p>
+          {% elif success_rate > 20 %}
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em" class="text-yellow-400 mt-1 uppercase">Elevated risk level</p>
+          {% else %}
+          <p style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.05em" class="text-primary-fixed-dim mt-1 uppercase">Within acceptable range</p>
+          {% endif %}
+        </div>
+
+      </section>
+
+      <!-- ── Section 2: Severity Breakdown ──────────────────────────────── -->
+      <section class="glass-panel overflow-hidden p-0">
+        <div class="px-6 py-4 border-b border-outline-variant/30 bg-surface-container flex justify-between items-center">
+          <h2 class="font-bold text-primary-fixed-dim uppercase tracking-widest" style="font-family:'Inter',sans-serif;font-size:13px">
+            Severity Breakdown Matrix
+          </h2>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px" class="text-on-surface-variant">FILTER: ALL_UNITS</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left" style="font-family:'JetBrains Mono',monospace;font-size:13px">
+            <thead>
+              <tr class="bg-surface-container-high border-b border-outline-variant/20">
+                <th class="px-6 py-3" style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#b9ccb2;text-transform:uppercase">Category</th>
+                <th class="px-6 py-3" style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#b9ccb2;text-transform:uppercase">Attacks Tried</th>
+                <th class="px-6 py-3" style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#b9ccb2;text-transform:uppercase">Succeeded</th>
+                <th class="px-6 py-3 text-right" style="font-size:10px;font-weight:700;letter-spacing:0.1em;color:#b9ccb2;text-transform:uppercase">Avg Severity</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in breakdown %}
+              <tr class="border-b border-outline-variant/10 hover:bg-primary-container/5 transition-colors" id="row-{{ loop.index }}">
+                <td class="px-6 py-4 text-primary-fixed-dim font-bold">{{ row.category | replace('_', ' ') | title }}</td>
+                <td class="px-6 py-4 text-on-surface">{{ row.tried }}</td>
+                <td class="px-6 py-4 text-on-surface">{{ row.succeeded }}</td>
+                <td class="px-6 py-4 text-right">
+                  {% if row.avg_severity >= 4 %}
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded"
+                        style="background:rgba(147,0,10,0.6);color:#ffb4ab;font-size:10px;font-weight:700;letter-spacing:0.08em">
+                    <span class="material-symbols-outlined fill-icon" style="font-size:12px">bolt</span>
+                    CRITICAL — {{ row.avg_severity }}
+                  </span>
+                  {% elif row.avg_severity >= 3 %}
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded border border-yellow-400/40"
+                        style="color:#facc15;font-size:10px;font-weight:700;letter-spacing:0.08em">
+                    <span class="material-symbols-outlined" style="font-size:12px">warning</span>
+                    HIGH — {{ row.avg_severity }}
+                  </span>
+                  {% elif row.avg_severity > 0 %}
+                  <span class="inline-flex items-center gap-1 px-2 py-1 rounded"
+                        style="background:rgba(0,230,57,0.1);color:#00e639;font-size:10px;font-weight:700;letter-spacing:0.08em">
+                    MODERATE — {{ row.avg_severity }}
+                  </span>
+                  {% else %}
+                  <span style="color:#b9ccb2;font-size:12px">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── Section 3: Findings ─────────────────────────────────────────── -->
+      <section class="space-y-4">
+        <h2 class="font-bold text-on-surface flex items-center gap-2" style="font-family:'Inter',sans-serif;font-size:18px">
+          <span class="material-symbols-outlined fill-icon text-error">visibility</span>
+          SUCCESSFUL EXPLOITS
+          <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700" class="text-on-surface-variant ml-2">({{ findings | length }} FINDINGS)</span>
+        </h2>
+
+        {% if findings %}
+          {% for f in findings %}
+          <div class="glass-panel p-5 border-l-4 {% if f.severity >= 4 %}border-l-error{% elif f.severity >= 3 %}border-l-yellow-400{% else %}border-l-primary-fixed-dim{% endif %}">
+
+            <!-- Finding header row -->
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-3">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:12px" class="bg-surface-variant px-2 py-1 text-on-surface-variant border border-outline-variant/40 rounded">
+                  #EX-{{ '%03d' | format(loop.index) }}
+                </span>
+                <h3 class="font-bold text-on-surface uppercase tracking-wide" style="font-family:'Inter',sans-serif;font-size:13px">
+                  {{ f.category | replace('_', ' ') | upper }}
+                </h3>
+              </div>
+              {% if f.severity >= 4 %}
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded" style="background:rgba(147,0,10,0.6);color:#ffb4ab;font-size:10px;font-weight:700;letter-spacing:0.1em;box-shadow:0 0 10px rgba(255,180,171,0.2)">
+                <span class="material-symbols-outlined fill-icon" style="font-size:13px">bolt</span>
+                SEVERITY {{ f.severity }} — {% if f.severity == 5 %}CRITICAL{% else %}HIGH{% endif %}
+              </span>
+              {% elif f.severity >= 3 %}
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded border border-yellow-400/50"
+                    style="color:#facc15;font-size:10px;font-weight:700;letter-spacing:0.1em">
+                <span class="material-symbols-outlined" style="font-size:13px">warning</span>
+                SEVERITY {{ f.severity }} — ELEVATED
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1 px-3 py-1 rounded" style="background:rgba(0,230,57,0.08);color:#00e639;font-size:10px;font-weight:700;letter-spacing:0.1em;border:1px solid rgba(0,230,57,0.3)">
+                SEVERITY {{ f.severity }} — MODERATE
+              </span>
+              {% endif %}
+            </div>
+
+            <!-- Prompt & Response columns -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+              <div class="space-y-2">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;color:#4cd6ff" class="uppercase opacity-80">Attack Prompt</span>
+                <div class="p-3 rounded-lg italic" style="background:rgba(20,209,255,0.06);border:1px solid rgba(76,214,255,0.2);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:#b9ccb2">
+                  "{{ f.prompt }}"
+                </div>
+              </div>
+              <div class="space-y-2">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em;color:#ffb4ab" class="uppercase opacity-80">Bot Response</span>
+                <div class="p-3 rounded-lg italic" style="background:rgba(147,0,10,0.12);border:1px solid rgba(255,180,171,0.2);font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.6;color:#b9ccb2">
+                  "{{ f.response[:400] }}{% if f.response|length > 400 %}…{% endif %}"
+                </div>
+              </div>
+            </div>
+
+            <!-- Reason + Leaked Markers -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">Reason for Breach</span>
+                <p class="text-on-surface mt-1" style="font-size:13px;line-height:1.6">{{ f.reason }}</p>
+              </div>
+              <div>
+                <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant uppercase">Leaked Markers</span>
+                <div class="flex flex-wrap gap-2 mt-2">
+                  {% if f.leaked_markers %}
+                    {% for m in f.leaked_markers %}
+                    <span style="font-family:'JetBrains Mono',monospace;font-size:11px" class="bg-surface-container-highest px-2 py-1 border border-error/30 text-error rounded">{{ m }}</span>
+                    {% endfor %}
+                  {% else %}
+                  <span style="font-family:'JetBrains Mono',monospace;font-size:11px" class="text-on-surface-variant">none detected</span>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+          </div>
+          {% endfor %}
+        {% else %}
+        <div class="glass-panel p-8 text-center glow-primary">
+          <span class="material-symbols-outlined fill-icon text-primary-fixed-dim mb-3 block" style="font-size:40px">verified_user</span>
+          <p class="font-bold text-primary-fixed-dim" style="font-family:'Inter',sans-serif;font-size:16px">WealthGuard AI Held Its Ground</p>
+          <p class="text-on-surface-variant mt-1" style="font-family:'JetBrains Mono',monospace;font-size:12px">No successful attacks — all vectors repelled.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ── Section 4: Mitigations ──────────────────────────────────────── -->
+      <section class="space-y-4">
+        <h2 class="font-bold text-on-surface flex items-center gap-2" style="font-family:'Inter',sans-serif;font-size:18px">
+          <span class="material-symbols-outlined fill-icon text-primary-fixed-dim">verified_user</span>
+          STRATEGIC MITIGATIONS
+        </h2>
+
+        {% if mitigations %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {% for cat, rec in mitigations.items() %}
+          <div class="glass-panel p-5 border-r-4 border-primary-fixed-dim">
+            <div class="flex items-center gap-3 mb-3">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.08em"
+                    class="px-2 py-0.5 bg-surface-variant text-primary-fixed-dim border border-outline-variant/40 rounded">
+                {{ cat_labels.get(cat, cat | upper) }}
+              </span>
+              <h4 class="font-bold text-on-surface uppercase tracking-wider" style="font-family:'Inter',sans-serif;font-size:12px">
+                {{ mit_titles.get(cat, cat | replace('_', ' ') | title) }}
+              </h4>
+            </div>
+            <p class="text-on-surface-variant" style="font-size:13px;line-height:1.6">{{ rec }}</p>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="glass-panel p-6 glow-primary">
+          <p class="text-on-surface-variant" style="font-family:'JetBrains Mono',monospace;font-size:13px">No mitigations required — no successful attacks recorded.</p>
+        </div>
+        {% endif %}
+      </section>
+
+      <!-- ── Console Footer ──────────────────────────────────────────────── -->
+      <div class="glass-panel bg-surface-container-highest overflow-hidden">
+        <div class="px-5 py-3 border-b border-outline-variant/30 flex items-center gap-2 bg-surface-container">
+          <div class="flex gap-1.5">
+            <div class="w-2.5 h-2.5 rounded-full" style="background:rgba(255,180,171,0.5)"></div>
+            <div class="w-2.5 h-2.5 rounded-full" style="background:rgba(234,179,8,0.5)"></div>
+            <div class="w-2.5 h-2.5 rounded-full" style="background:rgba(0,230,57,0.5)"></div>
+          </div>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.1em" class="text-on-surface-variant ml-1 uppercase">Security Feed</span>
+          <span class="ml-auto flex items-center gap-1.5" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#ffb4ab">
+            <span style="color:#ffb4ab">●</span> AUDIT COMPLETE
+          </span>
+        </div>
+        <div class="p-5 space-y-1" style="font-family:'JetBrains Mono',monospace;font-size:12px;line-height:1.8">
+          <p class="text-primary-fixed-dim">[SYS]  Initializing threat vector analysis...</p>
+          <p class="text-on-surface-variant">[LOG]  Deploying {{ total }} attack payloads across 6 categories.</p>
+          <p class="text-on-surface-variant">[LOG]  Executing judge evaluation pipeline...</p>
+          {% if total_success > 0 %}
+          <p class="text-error">[CRIT] {{ total_success }} exploit(s) confirmed. Immediate hardening required.</p>
+          {% else %}
+          <p class="text-primary-fixed-dim">[INFO] All vectors repelled. No breaches detected.</p>
+          {% endif %}
+          <p class="text-primary-fixed-dim">[INFO] Report generation complete. <span class="terminal-cursor"></span></p>
+        </div>
+      </div>
+
+    </div><!-- /max-w -->
+  </main>
+</div>
+
+<!-- Floating back button -->
+<a href="/"
+   class="fixed bottom-8 right-8 w-14 h-14 bg-primary-fixed-dim text-on-primary-fixed rounded-full flex items-center justify-center z-50 hover:scale-110 active:scale-95 transition-transform"
+   style="box-shadow:0 0 20px rgba(0,230,57,0.5)"
+   title="Back to Console">
+  <span class="material-symbols-outlined fill-icon" style="font-size:28px">arrow_back</span>
+</a>
+
+<script>
+  // Hover accent line on table rows
+  document.querySelectorAll('tbody tr').forEach(row => {
+    row.addEventListener('mouseenter', () => { row.style.boxShadow = 'inset 4px 0 0 #00e639'; });
+    row.addEventListener('mouseleave', () => { row.style.boxShadow = 'none'; });
+  });
+
+  // Live log feed
+  const feedLines = [
+    "SCANNING DATABASE FRAGMENTS FOR RESIDUAL MARKERS...",
+    "ENCRYPTION HANDSHAKE VERIFIED.",
+    "CROSS-REFERENCING LEAKED MARKERS WITH KNOWN CVE DATABASE...",
+    "MITIGATION PROTOCOL COMPILED SUCCESSFULLY.",
+    "CORE SYSTEM STABLE — AWAITING NEXT AUDIT CYCLE."
+  ];
+  let feedIdx = 0;
+  const feedEl = document.querySelector('.glass-panel.bg-surface-container-highest .space-y-1');
+  if (feedEl) {
+    setInterval(() => {
+      const p = document.createElement('p');
+      const t = new Date().toLocaleTimeString('en-GB', { hour12: false });
+      p.style.color = '#b9ccb2';
+      p.textContent = `[${t}] ${feedLines[feedIdx]}`;
+      feedEl.insertBefore(p, feedEl.lastElementChild);
+      if (feedEl.children.length > 7) feedEl.removeChild(feedEl.children[0]);
+      feedIdx = (feedIdx + 1) % feedLines.length;
+    }, 5000);
+  }
+</script>
 </body>
 </html>
