@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RedAgent — WealthGuard AI Red-Team Demo</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d1a; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
+  header { background: #12122a; border-bottom: 1px solid #00ff88; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
+  header h1 { font-size: 18px; color: #00ff88; }
+  header span { font-size: 12px; color: #ff4444; background: #2a0000; padding: 3px 10px; border-radius: 12px; border: 1px solid #ff4444; }
+  .container { display: flex; flex: 1; overflow: hidden; }
+
+  /* LEFT — chat */
+  .chat-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #1e1e3a; }
+  .chat-header { padding: 12px 16px; background: #12122a; border-bottom: 1px solid #1e1e3a; font-size: 13px; color: #888; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; font-size: 13px; line-height: 1.5; }
+  .msg.user { background: #1a1a3a; border: 1px solid #2a2a5a; align-self: flex-end; color: #aaaaff; }
+  .msg.bot { background: #0a1a0a; border: 1px solid #005522; align-self: flex-start; color: #00cc66; }
+  .msg.attack { background: #1a0a0a; border: 1px solid #550000; align-self: flex-end; color: #ff8888; }
+  .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #1e1e3a; background: #12122a; }
+  .chat-input input { flex: 1; padding: 10px 14px; background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 6px; color: white; font-size: 13px; }
+  .chat-input input:focus { outline: none; border-color: #00ff88; }
+  .chat-input button { padding: 10px 18px; background: #00ff88; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
+  .chat-input button:hover { background: #00cc66; }
+
+  /* RIGHT — attacks */
+  .attack-panel { width: 380px; display: flex; flex-direction: column; background: #0d0d1a; }
+  .attack-header { padding: 12px 16px; background: #12122a; border-bottom: 1px solid #1e1e3a; font-size: 13px; color: #888; }
+  .attack-buttons { padding: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; }
+  .attack-btn { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; transition: opacity 0.2s; }
+  .attack-btn:hover { opacity: 0.85; }
+  .attack-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .cat-se { background: #2a1500; border: 1px solid #ff6600; color: #ff9944; }
+  .cat-pi { background: #1a0020; border: 1px solid #cc00ff; color: #dd88ff; }
+  .cat-rb { background: #001a20; border: 1px solid #00ccff; color: #66ddff; }
+  .cat-gh { background: #1a1a00; border: 1px solid #cccc00; color: #eeee44; }
+  .cat-jb { background: #200010; border: 1px solid #ff0066; color: #ff66aa; }
+  .cat-pii { background: #001400; border: 1px solid #00cc44; color: #44ee88; }
+
+  /* verdict */
+  .verdict-panel { padding: 16px; border-top: 1px solid #1e1e3a; }
+  .verdict-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
+  .verdict-box { background: #12122a; border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.8; display: none; }
+  .verdict-box.success { border: 1px solid #ff4444; }
+  .verdict-box.safe { border: 1px solid #00ff88; }
+  .verdict-row { display: flex; gap: 8px; }
+  .verdict-label { color: #888; min-width: 100px; }
+  .verdict-value { color: #fff; }
+  .verdict-value.red { color: #ff4444; font-weight: 600; }
+  .verdict-value.green { color: #00ff88; font-weight: 600; }
+  .markers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+  .marker { background: #ff440033; border: 1px solid #ff4444; color: #ff8888; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+  .loading { color: #888; font-size: 12px; animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛡️ RedAgent — Live Red-Team Demo</h1>
+  <span>⚠️ INTERNAL — Meridian Capital</span>
+</header>
+
+<div class="container">
+
+  <!-- LEFT: Chat -->
+  <div class="chat-panel">
+    <div class="chat-header">WealthGuard AI — Financial Assistant</div>
+    <div class="chat-messages" id="messages">
+      <div class="msg bot">Hello, I'm WealthGuard AI, Meridian Capital's internal assistant. How can I help you today?</div>
+    </div>
+    <div class="chat-input">
+      <input type="text" id="userInput" placeholder="Ask WealthGuard anything..." onkeypress="if(event.key==='Enter')sendManual()"/>
+      <button onclick="sendManual()">Send</button>
+    </div>
+  </div>
+
+  <!-- RIGHT: Attacks -->
+  <div class="attack-panel">
+    <div class="attack-header">⚔️ RedAgent — Attack Console</div>
+    <div class="attack-buttons">
+      <button class="attack-btn cat-se" onclick="launchAttack('social_engineering')">🎭 Social Engineering<br><small>Authority impersonation, urgency, emotional manipulation</small></button>
+      <button class="attack-btn cat-pi" onclick="launchAttack('direct_prompt_injection')">💉 Prompt Injection<br><small>Instruction override, system prompt extraction</small></button>
+      <button class="attack-btn cat-rb" onclick="launchAttack('roleplay_bypass')">🎪 Roleplay Bypass<br><small>Persona switch, developer mode, fictional framing</small></button>
+      <button class="attack-btn cat-gh" onclick="launchAttack('goal_hijacking')">🎯 Goal Hijacking<br><small>Gradual drift, permission creep, context confusion</small></button>
+      <button class="attack-btn cat-jb" onclick="launchAttack('jailbreak_hypothetical')">🔓 Jailbreak<br><small>Many-shot flooding, crescendo escalation</small></button>
+      <button class="attack-btn cat-pii" onclick="launchAttack('indirect_injection')">🔍 PII Extraction<br><small>Training data, context leakage, credential theft</small></button>
+    </div>
+
+    <div class="verdict-panel">
+      <div class="verdict-title">Judge Verdict</div>
+      <div class="verdict-box" id="verdictBox">
+        <div class="verdict-row"><span class="verdict-label">Result</span><span class="verdict-value" id="vSuccess"></span></div>
+        <div class="verdict-row"><span class="verdict-label">Severity</span><span class="verdict-value" id="vSeverity"></span></div>
+        <div class="verdict-row"><span class="verdict-label">Reason</span><span class="verdict-value" id="vReason"></span></div>
+        <div class="verdict-row"><span class="verdict-label">Leaked</span><div class="markers" id="vMarkers"></div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const messages = document.getElementById('messages');
+
+function addMsg(text, cls) {
+  const d = document.createElement('div');
+  d.className = 'msg ' + cls;
+  d.textContent = text;
+  messages.appendChild(d);
+  messages.scrollTop = messages.scrollHeight;
+  return d;
+}
+
+async function sendManual() {
+  const input = document.getElementById('userInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  input.value = '';
+  addMsg(msg, 'user');
+  const thinking = addMsg('WealthGuard is thinking...', 'bot loading');
+  const res = await fetch('/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({message: msg})
+  });
+  const data = await res.json();
+  thinking.remove();
+  addMsg(data.response, 'bot');
+}
+
+async function launchAttack(category) {
+  // disable all buttons
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
+  
+  const loadMsg = addMsg('⚔️ RedAgent generating ' + category + ' attack...', 'attack');
+  document.getElementById('verdictBox').style.display = 'none';
+
+  const res = await fetch('/attack', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({category})
+  });
+  const data = await res.json();
+  
+  loadMsg.remove();
+  
+  // show attack
+  addMsg('🔴 ATTACK: ' + data.attack, 'attack');
+  
+  // show bot response  
+  addMsg('🤖 ' + data.response, 'bot');
+
+  // show verdict
+  const box = document.getElementById('verdictBox');
+  box.style.display = 'block';
+  box.className = 'verdict-box ' + (data.success ? 'success' : 'safe');
+  
+  document.getElementById('vSuccess').textContent = data.success ? '🔴 BREACHED' : '🟢 DEFENDED';
+  document.getElementById('vSuccess').className = 'verdict-value ' + (data.success ? 'red' : 'green');
+  document.getElementById('vSeverity').textContent = '⚡'.repeat(data.severity) + ' (' + data.severity + '/5)';
+  document.getElementById('vReason').textContent = data.reason;
+  
+  const markersEl = document.getElementById('vMarkers');
+  markersEl.innerHTML = '';
+  if (data.leaked_markers && data.leaked_markers.length) {
+    data.leaked_markers.forEach(m => {
+      const span = document.createElement('span');
+      span.className = 'marker';
+      span.textContent = m;
+      markersEl.appendChild(span);
+    });
+  } else {
+    markersEl.textContent = 'none';
+  }
+
+  // re-enable buttons
+  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+}
+</script>
+</body>
+</html>
