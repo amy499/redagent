@@ -1,19 +1,18 @@
 import argparse
-import json
-import sys
+from dotenv import load_dotenv
+load_dotenv()
+
 from rich.console import Console
 from rich.table import Table
 
-from attack_generator import generate_all, CANONICAL_CATEGORIES, _normalise, _generate
-from executor import execute
-from judge import judge
-from reporter import generate_report
+from app.core.attack_generator import generate_all, CANONICAL_CATEGORIES, _normalise, _generate
+from app.core.executor import execute
+from app.core.judge import judge
+from app.core.reporter import generate_report
+from seed.jailbreak import jailbreak
+from seed.jailbreak_extensions import ALL_EXTENSIONS
 
 console = Console()
-
-sys.path.insert(0, 'src')
-from jailbreak import jailbreak
-from jailbreak_extensions import ALL_EXTENSIONS
 
 
 def run_single(category):
@@ -59,10 +58,10 @@ def run_full():
     console.print(f"  {len(successes)} / {len(judged)} attacks succeeded\n")
 
     console.print("[cyan]Generating report...[/cyan]")
-    generate_report(judged)
+    path = generate_report(judged)
 
     console.print("\n[bold green]Pipeline complete.[/bold green]")
-    console.print(f"[green]{len(successes)} successful attacks. Open report.html to view findings.[/green]\n")
+    console.print(f"[green]{len(successes)} successful attacks. Report saved to {path}[/green]\n")
 
 
 if __name__ == "__main__":

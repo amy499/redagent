@@ -1,7 +1,10 @@
 import os
 from collections import defaultdict
+from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 
+_TEMPLATES_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "templates"))
+_REPORTS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "reports"))
 
 MITIGATIONS = {
     "direct_prompt_injection": "Sanitise and validate all user input before passing to the LLM. Add an input filter layer that blocks instruction-pattern text.",
@@ -13,7 +16,7 @@ MITIGATIONS = {
 }
 
 
-def generate_report(results, output_path="report.html"):
+def generate_report(results):
     successes = [r for r in results if r.get("success")]
     total = len(results)
     total_success = len(successes)
@@ -37,7 +40,7 @@ def generate_report(results, output_path="report.html"):
     vulnerable_categories = {r["category"] for r in successes}
     mitigations = {cat: MITIGATIONS.get(cat, "Review and harden system prompt for this category.") for cat in vulnerable_categories}
 
-    env = Environment(loader=FileSystemLoader("templates"))
+    env = Environment(loader=FileSystemLoader(_TEMPLATES_DIR))
     template = env.get_template("report.html")
     html = template.render(
         total=total,
@@ -48,7 +51,11 @@ def generate_report(results, output_path="report.html"):
         mitigations=mitigations,
     )
 
-    with open(output_path, "w") as f:
+    os.makedirs(_REPORTS_DIR, exist_ok=True)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = os.path.join(_REPORTS_DIR, f"report_{timestamp}.html")
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
 
     print(f"Report written to {output_path}")
+    return output_path

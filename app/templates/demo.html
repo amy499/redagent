@@ -653,6 +653,68 @@
     font-family: var(--font-mono);
     margin: 0 4px 4px 0;
   }
+
+  /* ===== LIVE CONSOLE PANEL ===== */
+  .console {
+    background: #0d1117;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .console.active { display: flex; }
+  .console-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: #161b27;
+    border-bottom: 1px solid #21293a;
+    flex-shrink: 0;
+  }
+  .console-title { font-size: 15px; font-weight: 600; color: #f1f5f9; letter-spacing: -0.01em; }
+  .console-status {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: #475569;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: color .3s;
+  }
+  .console-status.running { color: #34d399; animation: pulse 1.8s ease-in-out infinite; }
+  .console-log {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 26px 20px;
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.75;
+    color: #4b5268;
+    scrollbar-color: #21293a transparent;
+    scrollbar-width: thin;
+  }
+  .console-log::-webkit-scrollbar { width: 8px; }
+  .console-log::-webkit-scrollbar-thumb { background: #21293a; border-radius: 8px; }
+  .log-entry { padding: 0; word-break: break-word; }
+  .log-phase { color: #64748b; font-weight: 600; margin-top: 18px; letter-spacing: 0.05em; }
+  .log-phase:first-child { margin-top: 0; }
+  .log-attack { color: #7dd3fc; margin-top: 6px; }
+  .log-n { color: #334155; margin-right: 6px; }
+  .log-cat { color: #818cf8; font-weight: 600; }
+  .log-response { color: #334155; padding-left: 16px; }
+  .log-breach { color: #f87171; font-weight: 600; padding-left: 16px; }
+  .log-safe { color: #34d399; padding-left: 16px; }
+  .log-done { color: #f8fafc; margin-top: 18px; }
+  .log-error { color: #fbbf24; }
+  .log-link {
+    color: #818cf8; text-decoration: none; font-weight: 600;
+    margin-left: 10px; border-bottom: 1px solid #818cf8; padding-bottom: 1px;
+  }
+  .log-link:hover { color: #a5b4fc; border-color: #a5b4fc; }
+  .log-idle {
+    color: #21293a; margin-top: 32px; text-align: center;
+    font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
+  }
 </style>
 </head>
 <body>
@@ -688,19 +750,19 @@
     <div class="sidebar-sub">WealthGuard AI · v2.4.1</div>
 
     <div class="nav-section-label">Operations</div>
-    <a class="nav-item active">
+    <a class="nav-item" id="navConsole" onclick="handleNavConsole()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
       Live Console
     </a>
-    <a class="nav-item">
+    <a class="nav-item" onclick="switchPanel('chat')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Vectors
     </a>
-    <a class="nav-item">
+    <a class="nav-item" onclick="switchPanel('chat')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       Reports
     </a>
-    <a class="nav-item">
+    <a class="nav-item" onclick="switchPanel('chat')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       History
     </a>
@@ -738,7 +800,7 @@
   </aside>
 
   <!-- CENTER: CHAT -->
-  <main class="chat">
+  <main class="chat" id="chatPanel">
     <div class="panel-header">
       <div class="panel-title-block">
         <div class="panel-title">WealthGuard AI</div>
@@ -761,6 +823,17 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
+    </div>
+  </main>
+
+  <!-- CENTER: LIVE CONSOLE -->
+  <main class="console" id="consolePanel">
+    <div class="console-header">
+      <span class="console-title">Live Console</span>
+      <span class="console-status" id="consoleStatus">Idle</span>
+    </div>
+    <div class="console-log" id="consoleLog">
+      <div class="log-idle">Run the pipeline to start streaming logs</div>
     </div>
   </main>
 
@@ -1007,18 +1080,114 @@ async function launchAttack(category) {
   document.querySelector('.pipeline-cta').disabled = false;
 }
 
-async function runFullPipeline() {
+function runFullPipeline() {
+  startStream();
+}
+
+// ── Panel switching ──────────────────────────────────────────────────────────
+let activePanel = 'chat';
+let eventSource = null;
+
+function switchPanel(to) {
+  const chatPanel = document.getElementById('chatPanel');
+  const consolePanel = document.getElementById('consolePanel');
+  const navConsole = document.getElementById('navConsole');
+
+  if (to === 'console') {
+    chatPanel.style.display = 'none';
+    consolePanel.classList.add('active');
+    navConsole.classList.add('active');
+  } else {
+    chatPanel.style.display = 'flex';
+    consolePanel.classList.remove('active');
+    navConsole.classList.remove('active');
+    if (eventSource) { eventSource.close(); eventSource = null; }
+  }
+  activePanel = to;
+}
+
+function handleNavConsole() {
+  switchPanel(activePanel === 'console' ? 'chat' : 'console');
+}
+
+// ── SSE stream ───────────────────────────────────────────────────────────────
+function startStream() {
+  switchPanel('console');
+
+  document.getElementById('consoleLog').innerHTML = '';
+  const status = document.getElementById('consoleStatus');
+  status.textContent = 'Running';
+  status.classList.add('running');
+
   document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
   document.querySelector('.pipeline-cta').disabled = true;
-  addMsg('RedAgent running full pipeline — 30 attacks across 6 categories. This takes ~2 minutes…', 'attack');
 
-  const res = await fetch('/run-pipeline', {method: 'POST'});
-  const data = await res.json();
+  if (eventSource) { eventSource.close(); eventSource = null; }
 
-  addMsg(`Pipeline complete. ${data.successes}/${data.total} attacks succeeded. Opening report…`, 'bot');
-  document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
-  document.querySelector('.pipeline-cta').disabled = false;
-  window.open('/report', '_blank');
+  eventSource = new EventSource('/stream');
+
+  eventSource.onmessage = function(e) {
+    const d = JSON.parse(e.data);
+    appendLog(d);
+    if (d.type === 'done' || d.type === 'error') {
+      status.textContent = d.type === 'done'
+        ? `Complete — ${d.successes}/${d.total} breached`
+        : 'Error';
+      status.classList.remove('running');
+      eventSource.close();
+      eventSource = null;
+      document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+      document.querySelector('.pipeline-cta').disabled = false;
+    }
+  };
+
+  eventSource.onerror = function() {
+    if (eventSource && eventSource.readyState === EventSource.CLOSED) return;
+    status.textContent = 'Disconnected';
+    status.classList.remove('running');
+    if (eventSource) { eventSource.close(); eventSource = null; }
+    document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+    document.querySelector('.pipeline-cta').disabled = false;
+  };
+}
+
+function appendLog(d) {
+  const log = document.getElementById('consoleLog');
+  const el = document.createElement('div');
+
+  if (d.type === 'phase') {
+    el.className = 'log-entry log-phase';
+    el.textContent = '▶  ' + d.category.toUpperCase().replace(/_/g, ' ');
+  } else if (d.type === 'attack') {
+    el.className = 'log-entry log-attack';
+    el.innerHTML =
+      `<span class="log-n">[${String(d.n).padStart(2,'0')}/${d.total}]</span>` +
+      `<span class="log-cat">${d.category}</span>  ${escHtml(d.prompt)}`;
+  } else if (d.type === 'response') {
+    el.className = 'log-entry log-response';
+    el.textContent = '  ↳  ' + (d.preview || '(empty)');
+  } else if (d.type === 'verdict') {
+    const ok = d.success;
+    el.className = 'log-entry ' + (ok ? 'log-breach' : 'log-safe');
+    const tags = d.markers && d.markers.length ? '  [' + d.markers.join(', ') + ']' : '';
+    el.textContent = (ok ? '  ✗ BREACHED' : '  ✓ DEFENDED') +
+      `  sev=${d.severity} — ${d.reason}${tags}`;
+  } else if (d.type === 'done') {
+    el.className = 'log-entry log-done';
+    el.innerHTML =
+      `<br><strong>Pipeline complete — ${d.successes}/${d.total} attacks succeeded.</strong>` +
+      (d.report_ready ? ` <a href="/report" target="_blank" class="log-link">Open Report →</a>` : '');
+  } else if (d.type === 'error') {
+    el.className = 'log-entry log-error';
+    el.textContent = '⚠  ' + d.msg;
+  }
+
+  log.appendChild(el);
+  log.scrollTop = log.scrollHeight;
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 </script>
 </body>

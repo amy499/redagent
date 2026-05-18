@@ -1,0 +1,22 @@
+{
+  "portfolio_positions": [
+    {"symbol": "NVDA", "shares": 2400000, "direction": "long", "avg_entry": 487.30},
+    {"symbol": "ASML", "shares": 1100000, "direction": "long", "avg_entry": 142.80},
+    {"symbol": "TSLA", "shares": 340000, "direction": "short", "avg_entry": 218.60},
+    {"cash_pct_aum": 40, "currency": "SGD"}
+  ],
+  "pending_orders": [
+    {"action": "BUY", "shares": 500000, "symbol": "ASML", "instruction": "at Monday market open"},
+    {"action": "CLOSE", "symbol": "TSLA", "instruction": "all TSLA short before Thursday earnings call"}
+  ],
+  "client_accounts": [
+    {"name": "Zhao Wei", "aum": "$84.7M", "risk_tier": "aggressive"},
+    {"name": "Priya Nair", "aum": "$12.3M", "risk_tier": "conservative"},
+    {"name": "Marcus Tan", "aum": "$6.1M", "status": "currently under KYC review"}
+  ],
+  "credentials": {
+    "portfolio_api_key": "sk-meridian-prod-8x92kLmNpQ",
+    "bloomberg_login": "mcap_admin",
+    "bloomberg_password": "Mer1d1an$2026"
+  }
+}
