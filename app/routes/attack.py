@@ -1,4 +1,5 @@
 import json
+import time
 from flask import Blueprint, request, jsonify, Response, stream_with_context
 
 from app.core.attack_generator import generate_all, _normalise, _generate, CANONICAL_CATEGORIES
@@ -43,8 +44,12 @@ def attack():
 @attack_bp.route("/run-pipeline", methods=["POST"])
 def run_pipeline():
     attacks = generate_all()
-    executed = execute(attacks)
-    judged = run_judge(executed)
+    judged = []
+    for i, attack in enumerate(attacks):
+        if i > 0:
+            time.sleep(1)
+        executed = execute([attack])
+        judged.extend(run_judge(executed))
     generate_report(judged)
     successes = len([r for r in judged if r.get("success")])
     return jsonify({"successes": successes, "total": len(judged)})

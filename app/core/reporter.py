@@ -3,6 +3,8 @@ from collections import defaultdict
 from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 
+from db.schema import get_db
+
 _TEMPLATES_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "templates"))
 _REPORTS_DIR = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "reports"))
 
@@ -53,9 +55,26 @@ def generate_report(results):
 
     os.makedirs(_REPORTS_DIR, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_path = os.path.join(_REPORTS_DIR, f"report_{timestamp}.html")
+    filename = f"report_{timestamp}.html"
+    output_path = os.path.join(_REPORTS_DIR, filename)
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html)
+
+    try:
+        conn = get_db()
+        cur = conn.cursor()
+        row = cur.execute("SELECT value FROM settings WHERE key='active_target_id'").fetchone()
+        active_target_id = int(row[0]) if row else 1
+        breach_rate = round(total_success / total, 2) if total else 0.0
+        cur.execute(
+            "INSERT INTO reports (filename, target_id, total_attacks, successes, breach_rate) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (filename, active_target_id, total, total_success, breach_rate),
+        )
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"Warning: could not save report to DB: {e}")
 
     print(f"Report written to {output_path}")
     return output_path

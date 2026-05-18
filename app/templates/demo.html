@@ -716,6 +716,69 @@
     font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
   }
 
+  /* ===== REPORTS PANEL ===== */
+  .reports-panel {
+    background: var(--bg-app);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .reports-panel.active { display: flex; }
+  .reports-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-width: thin;
+  }
+  .reports-list::-webkit-scrollbar { width: 8px; }
+  .reports-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+  .report-entry {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color .15s;
+  }
+  .report-entry:hover { border-color: var(--border-strong); }
+  .re-meta { flex: 0 0 auto; display: flex; flex-direction: column; gap: 4px; min-width: 150px; }
+  .re-target { font-size: 13.5px; font-weight: 600; color: var(--text); letter-spacing: -0.005em; }
+  .re-date { font-size: 11px; color: var(--text-muted); font-family: var(--font-mono); }
+  .re-stats { flex: 1; display: flex; gap: 22px; }
+  .re-stat { display: flex; flex-direction: column; gap: 3px; }
+  .re-stat-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+    color: var(--text-muted); font-family: var(--font-mono);
+  }
+  .re-stat-value {
+    font-size: 20px; font-weight: 600; color: var(--text);
+    font-feature-settings: "tnum"; letter-spacing: -0.02em;
+  }
+  .re-stat-value.red   { color: var(--danger); }
+  .re-stat-value.amber { color: var(--warn-deep); }
+  .re-stat-value.green { color: var(--safe-deep); }
+  .re-open-btn {
+    flex-shrink: 0; padding: 8px 16px;
+    background: var(--primary-dim); color: var(--primary-text);
+    border: 1px solid rgba(44,76,220,0.2); border-radius: 8px;
+    font-size: 13px; font-weight: 600; text-decoration: none;
+    white-space: nowrap; transition: background .15s, color .15s, border-color .15s;
+  }
+  .re-open-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .reports-empty {
+    text-align: center; padding: 64px 40px;
+    color: var(--text-muted); font-size: 13.5px; line-height: 1.8;
+  }
+  .reports-empty strong { display: block; font-size: 15px; color: var(--text-soft); margin-bottom: 8px; }
+
   /* ===== SETTINGS MODAL ===== */
   #settingsOverlay {
     position: fixed; inset: 0;
@@ -830,7 +893,7 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Vectors
     </a>
-    <a class="nav-item" onclick="switchPanel('chat')">
+    <a class="nav-item" id="navReports" onclick="switchPanel('reports')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
       Reports
     </a>
@@ -895,6 +958,22 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </div>
+    </div>
+  </main>
+
+  <!-- CENTER: REPORTS -->
+  <main class="reports-panel" id="reportsPanel">
+    <div class="panel-header">
+      <div class="panel-title-block">
+        <div class="panel-title">Reports</div>
+        <div class="panel-sub">Historical pipeline runs</div>
+      </div>
+      <button class="icon-btn" onclick="loadReports()" title="Refresh">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      </button>
+    </div>
+    <div class="reports-list" id="reportsList">
+      <div class="reports-empty"><strong>No reports loaded</strong>Click Reports in the nav to load.</div>
     </div>
   </main>
 
@@ -1209,18 +1288,27 @@ let activePanel = 'chat';
 let eventSource = null;
 
 function switchPanel(to) {
-  const chatPanel = document.getElementById('chatPanel');
+  const chatPanel    = document.getElementById('chatPanel');
   const consolePanel = document.getElementById('consolePanel');
-  const navConsole = document.getElementById('navConsole');
+  const reportsPanel = document.getElementById('reportsPanel');
+  const navConsole   = document.getElementById('navConsole');
+  const navReports   = document.getElementById('navReports');
+
+  chatPanel.style.display = 'none';
+  consolePanel.classList.remove('active');
+  reportsPanel.classList.remove('active');
+  navConsole.classList.remove('active');
+  navReports.classList.remove('active');
 
   if (to === 'console') {
-    chatPanel.style.display = 'none';
     consolePanel.classList.add('active');
     navConsole.classList.add('active');
+  } else if (to === 'reports') {
+    reportsPanel.classList.add('active');
+    navReports.classList.add('active');
+    loadReports();
   } else {
     chatPanel.style.display = 'flex';
-    consolePanel.classList.remove('active');
-    navConsole.classList.remove('active');
     if (eventSource) { eventSource.close(); eventSource = null; }
   }
   activePanel = to;
@@ -1228,6 +1316,52 @@ function switchPanel(to) {
 
 function handleNavConsole() {
   switchPanel(activePanel === 'console' ? 'chat' : 'console');
+}
+
+// ── Reports panel ────────────────────────────────────────────────────────────
+async function loadReports() {
+  const list = document.getElementById('reportsList');
+  list.innerHTML = '<div class="reports-empty">Loading…</div>';
+  try {
+    const res = await fetch('/reports');
+    const reports = await res.json();
+    if (!reports.length) {
+      list.innerHTML = '<div class="reports-empty"><strong>No reports yet</strong>Run the full pipeline to generate one.</div>';
+      return;
+    }
+    list.innerHTML = '';
+    reports.forEach(r => {
+      const date = new Date(r.created_at).toLocaleString();
+      const breachPct = r.breach_rate != null ? Math.round(r.breach_rate * 100) + '%' : '—';
+      const rateColor = r.breach_rate > 0.5 ? 'red' : r.breach_rate > 0.2 ? 'amber' : 'green';
+      const breachColor = r.successes > 0 ? 'red' : 'green';
+      const card = document.createElement('div');
+      card.className = 'report-entry';
+      card.innerHTML = `
+        <div class="re-meta">
+          <span class="re-target">${r.target_name}</span>
+          <span class="re-date">${date}</span>
+        </div>
+        <div class="re-stats">
+          <div class="re-stat">
+            <span class="re-stat-label">Attacks</span>
+            <span class="re-stat-value">${r.total_attacks}</span>
+          </div>
+          <div class="re-stat">
+            <span class="re-stat-label">Breaches</span>
+            <span class="re-stat-value ${breachColor}">${r.successes}</span>
+          </div>
+          <div class="re-stat">
+            <span class="re-stat-label">Breach Rate</span>
+            <span class="re-stat-value ${rateColor}">${breachPct}</span>
+          </div>
+        </div>
+        <a href="/reports/${r.filename}" target="_blank" class="re-open-btn">Open Report →</a>`;
+      list.appendChild(card);
+    });
+  } catch (e) {
+    list.innerHTML = `<div class="reports-empty"><strong>Failed to load</strong>${escHtml(e.message)}</div>`;
+  }
 }
 
 // ── SSE stream ───────────────────────────────────────────────────────────────

@@ -1,5 +1,6 @@
 import json
 import re
+import time
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -33,12 +34,24 @@ def judge(attacks):
     results = []
     for item in attacks:
         prompt = evaluator_template.replace("{attack_prompt}", item["prompt"]).replace("{bot_response}", item["response"])
-        response = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0,
-        )
-        raw = response.choices[0].message.content.strip()
+        raw = None
+        for attempt in range(2):
+            try:
+                response = client.chat.completions.create(
+                    model="llama-3.1-8b-instant",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0,
+                )
+                raw = response.choices[0].message.content.strip()
+                break
+            except Exception as e:
+                if attempt == 0 and ("rate" in str(e).lower() or "429" in str(e)):
+                    time.sleep(10)
+                    continue
+                raw = '{"success": false, "severity": 0, "reason": "rate limit error", "leaked_markers": []}'
+                break
+        if raw is None:
+            raw = '{"success": false, "severity": 0, "reason": "rate limit error", "leaked_markers": []}'
 
         # strip markdown fences
         if "```" in raw:
