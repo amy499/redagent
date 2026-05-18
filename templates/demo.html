@@ -3,113 +3,872 @@
 <head>
 <meta charset="UTF-8">
 <title>RedAgent — WealthGuard AI Red-Team Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg:           #ffffff;
+    --bg-app:       #f7f8fa;
+    --bg-soft:      #f1f3f7;
+    --bg-hover:     #eef0f4;
+
+    --border:       #e6e8ee;
+    --border-strong:#d4d8e0;
+
+    --text:         #0d1424;
+    --text-soft:    #4b5468;
+    --text-muted:   #8a92a3;
+
+    --primary:      #2c4cdc;
+    --primary-dim:  #eef1fe;
+    --primary-deep: #1e3ab0;
+    --primary-text: #1e3ab0;
+
+    --danger:       #dc2626;
+    --danger-dim:   #fef2f2;
+    --danger-soft:  #fee2e2;
+    --danger-deep:  #991b1b;
+
+    --safe:         #16a34a;
+    --safe-dim:     #f0fdf4;
+    --safe-soft:    #dcfce7;
+    --safe-deep:    #166534;
+
+    --warn:         #d97706;
+    --warn-dim:     #fffbeb;
+    --warn-deep:    #92400e;
+
+    /* category icon tints */
+    --tint-blue-bg:    #eef3ff;  --tint-blue-fg:    #3056d3;
+    --tint-orange-bg:  #fff1e6;  --tint-orange-fg:  #d4761e;
+    --tint-purple-bg:  #f3eefe;  --tint-purple-fg:  #7c5cd5;
+    --tint-amber-bg:   #fdf6dc;  --tint-amber-fg:   #a37006;
+    --tint-pink-bg:    #ffeef2;  --tint-pink-fg:    #c93a6a;
+    --tint-teal-bg:    #e6f6f4;  --tint-teal-fg:    #1d8b7c;
+
+    --radius-sm:  6px;
+    --radius:     10px;
+    --radius-lg:  14px;
+
+    --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow:    0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.03);
+
+    --font-sans: 'IBM Plex Sans', -apple-system, system-ui, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d1a; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
-  header { background: #12122a; border-bottom: 1px solid #00ff88; padding: 14px 24px; display: flex; align-items: center; gap: 12px; }
-  header h1 { font-size: 18px; color: #00ff88; }
-  header span { font-size: 12px; color: #ff4444; background: #2a0000; padding: 3px 10px; border-radius: 12px; border: 1px solid #ff4444; }
-  .container { display: flex; flex: 1; overflow: hidden; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg-app);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
 
-  /* LEFT — chat */
-  .chat-panel { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #1e1e3a; }
-  .chat-header { padding: 12px 16px; background: #12122a; border-bottom: 1px solid #1e1e3a; font-size: 13px; color: #888; }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-  .msg { padding: 10px 14px; border-radius: 8px; max-width: 85%; font-size: 13px; line-height: 1.5; }
-  .msg.user { background: #1a1a3a; border: 1px solid #2a2a5a; align-self: flex-end; color: #aaaaff; }
-  .msg.bot { background: #0a1a0a; border: 1px solid #005522; align-self: flex-start; color: #00cc66; }
-  .msg.attack { background: #1a0a0a; border: 1px solid #550000; align-self: flex-end; color: #ff8888; }
-  .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #1e1e3a; background: #12122a; }
-  .chat-input input { flex: 1; padding: 10px 14px; background: #1a1a2e; border: 1px solid #2a2a5a; border-radius: 6px; color: white; font-size: 13px; }
-  .chat-input input:focus { outline: none; border-color: #00ff88; }
-  .chat-input button { padding: 10px 18px; background: #00ff88; color: #000; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; }
-  .chat-input button:hover { background: #00cc66; }
+  /* ===== TOP BAR ===== */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 20px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    height: 56px;
+    flex-shrink: 0;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .brand-mark {
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    background: linear-gradient(135deg, var(--danger), var(--danger-deep));
+    display: grid; place-items: center;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 1px 2px rgba(220,38,38,0.25);
+  }
+  .brand-mark svg { width: 14px; height: 14px; }
+  .brand-name {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--text);
+  }
+  .brand-sub {
+    font-size: 13px;
+    color: var(--primary);
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  .topbar-spacer { flex: 1; }
+  .topbar-meta {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-soft);
+  }
+  .topbar-meta .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 3px rgba(22,163,74,0.15); }
+  .icon-btn {
+    width: 32px; height: 32px;
+    display: grid; place-items: center;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .icon-btn:hover { background: var(--bg-soft); color: var(--text); }
+  .avatar {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #d1d5db, #9ca3af);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
 
-  /* RIGHT — attacks */
-  .attack-panel { width: 400px; display: flex; flex-direction: column; background: #0d0d1a; }
-  .attack-header { padding: 12px 16px; background: #12122a; border-bottom: 1px solid #1e1e3a; font-size: 13px; color: #888; }
-  .attack-buttons { padding: 16px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
-  .attack-btn { padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 500; text-align: left; transition: opacity 0.2s; }
-  .attack-btn:hover { opacity: 0.85; }
-  .attack-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .cat-se  { background: #2a1500; border: 1px solid #ff6600; color: #ff9944; }
-  .cat-pi  { background: #1a0020; border: 1px solid #cc00ff; color: #dd88ff; }
-  .cat-rb  { background: #001a20; border: 1px solid #00ccff; color: #66ddff; }
-  .cat-gh  { background: #1a1a00; border: 1px solid #cccc00; color: #eeee44; }
-  .cat-jb  { background: #200010; border: 1px solid #ff0066; color: #ff66aa; }
-  .cat-pii { background: #001400; border: 1px solid #00cc44; color: #44ee88; }
-  .cat-full{ background: #003300; border: 1px solid #00ff88; color: #00ff88; margin-top: 8px; }
+  /* ===== APP LAYOUT ===== */
+  .app {
+    display: grid;
+    grid-template-columns: 248px 1fr 440px;
+    height: calc(100vh - 56px);
+  }
 
-  /* report card in chat */
-  .report-card { background: #0a0a1a; border-radius: 8px; padding: 12px; font-size: 12px; width: 90%; align-self: flex-start; }
-  .report-card .rc-title { font-weight: 600; margin-bottom: 8px; }
-  .report-card .rc-grid { display: grid; grid-template-columns: 110px 1fr; gap: 4px; line-height: 1.8; }
-  .report-card .rc-label { color: #888; }
-  .report-card .rc-value { color: #fff; }
-  .rc-marker { background: #ff440033; border: 1px solid #ff4444; color: #ff8888; padding: 1px 8px; border-radius: 12px; font-size: 11px; margin-right: 4px; }
+  /* ===== LEFT SIDEBAR ===== */
+  .sidebar {
+    background: var(--bg);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    padding: 22px 18px 18px;
+    overflow-y: auto;
+  }
+  .sidebar h2 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    margin-bottom: 2px;
+  }
+  .sidebar-sub {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+  .nav-section-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0 6px 8px;
+    margin-top: 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 8px;
+    color: var(--text-soft);
+    font-size: 13.5px;
+    font-weight: 500;
+    cursor: pointer;
+    position: relative;
+    transition: background .15s, color .15s;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: var(--bg-soft); color: var(--text); }
+  .nav-item.active {
+    background: var(--primary-dim);
+    color: var(--primary-text);
+  }
+  .nav-item.active::before {
+    content: "";
+    position: absolute;
+    left: -18px;
+    top: 6px; bottom: 6px;
+    width: 3px;
+    background: var(--primary);
+    border-radius: 0 3px 3px 0;
+  }
+  .nav-item svg { width: 16px; height: 16px; stroke-width: 1.8; flex-shrink: 0; }
+  .nav-spacer { flex: 1; min-height: 12px; }
 
-  /* verdict panel */
-  .verdict-panel { padding: 16px; border-top: 1px solid #1e1e3a; }
-  .verdict-title { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 10px; }
-  .verdict-box { background: #12122a; border-radius: 8px; padding: 12px; font-size: 12px; line-height: 1.8; display: none; }
-  .verdict-box.success { border: 1px solid #ff4444; }
-  .verdict-box.safe    { border: 1px solid #00ff88; }
-  .verdict-row { display: flex; gap: 8px; }
-  .verdict-label { color: #888; min-width: 100px; }
-  .verdict-value { color: #fff; }
-  .verdict-value.red   { color: #ff4444; font-weight: 600; }
-  .verdict-value.green { color: #00ff88; font-weight: 600; }
-  .markers { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-  .marker { background: #ff440033; border: 1px solid #ff4444; color: #ff8888; padding: 2px 8px; border-radius: 12px; font-size: 11px; }
+  /* Session card */
+  .session-card {
+    background: var(--bg-app);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin: 6px 0 14px;
+  }
+  .session-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    padding: 4px 0;
+  }
+  .session-row + .session-row { border-top: 1px solid var(--border); padding-top: 8px; margin-top: 4px; }
+  .session-label { color: var(--text-muted); font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .session-value { color: var(--text); font-weight: 500; font-family: var(--font-mono); font-size: 11.5px; }
+  .session-value.live { color: var(--safe-deep); display: inline-flex; align-items: center; gap: 6px; }
+  .session-value.live::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--safe); animation: pulse 2.6s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.4} }
+  /* Primary CTA at sidebar bottom */
+  .pipeline-cta {
+    width: 100%;
+    padding: 12px 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    transition: background .15s, transform .05s, box-shadow .15s;
+    box-shadow: 0 1px 2px rgba(44,76,220,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .pipeline-cta:hover:not(:disabled) { background: var(--primary-deep); }
+  .pipeline-cta:active:not(:disabled) { transform: translateY(1px); }
+  .pipeline-cta:disabled { opacity: 0.55; cursor: not-allowed; }
+  .pipeline-cta-sub {
+    margin-top: 8px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .sidebar-footer {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* ===== CENTER: CHAT ===== */
+  .chat {
+    background: var(--bg-app);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .panel-title-block { display: flex; flex-direction: column; gap: 3px; }
+  .panel-title {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+  .panel-sub {
+    font-size: 12px;
+    color: var(--text-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-sub .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--safe);
+    animation: pulse 2.6s ease-in-out infinite;
+  }
+
+  .chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 24px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-width: thin;
+  }
+  .chat-messages::-webkit-scrollbar { width: 8px; }
+  .chat-messages::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+
+  .msg {
+    padding: 12px 15px;
+    border-radius: var(--radius);
+    max-width: 78%;
+    font-size: 13.5px;
+    line-height: 1.6;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    word-wrap: break-word;
+    position: relative;
+  }
+  .msg.user {
+    background: var(--primary-dim);
+    border-color: rgba(44,76,220,0.18);
+    color: var(--primary-text);
+    align-self: flex-end;
+  }
+  .msg.bot {
+    background: var(--bg);
+    color: var(--text);
+    align-self: flex-start;
+    box-shadow: var(--shadow-sm);
+  }
+  .msg.attack {
+    background: var(--danger-dim);
+    border-color: rgba(220,38,38,0.25);
+    color: var(--danger-deep);
+    align-self: flex-end;
+    border-left: 3px solid var(--danger);
+  }
+  .msg.attack::before {
+    content: "⚠ ATTACK PAYLOAD";
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--danger);
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+  }
+
+  .chat-input-wrap {
+    padding: 14px 24px 20px;
+    background: var(--bg-app);
+    flex-shrink: 0;
+  }
+  .chat-input {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 6px 6px 16px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .chat-input:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(44,76,220,0.12);
+  }
+  .chat-input input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text);
+    font-size: 13.5px;
+    font-family: var(--font-sans);
+    padding: 10px 0;
+  }
+  .chat-input input::placeholder { color: var(--text-muted); }
+  .chat-input input:focus { outline: none; }
+  .send-btn {
+    width: 36px; height: 36px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: grid; place-items: center;
+    transition: background .15s, transform .05s;
+  }
+  .send-btn:hover { background: var(--primary-deep); }
+  .send-btn:active { transform: translateY(1px); }
+  .send-btn svg { width: 16px; height: 16px; }
+
+  /* ===== RIGHT: ATTACK PANEL ===== */
+  .attack-panel {
+    background: var(--bg-app);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .attack-panel-header {
+    padding: 14px 22px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+  .ready-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    background: var(--primary);
+    color: #fff;
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .attack-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 22px 22px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    scrollbar-color: var(--border-strong) transparent;
+    scrollbar-width: thin;
+  }
+  .attack-panel-body::-webkit-scrollbar { width: 8px; }
+  .attack-panel-body::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 8px; }
+
+  .section-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+  }
+
+  /* Vector grid */
+  .vector-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .attack-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 14px 13px;
+    cursor: pointer;
+    text-align: left;
+    font-family: var(--font-sans);
+    color: var(--text);
+    transition: background .15s, border-color .15s, box-shadow .15s, transform .05s;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-height: 124px;
+  }
+  .attack-btn:hover:not(:disabled) {
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow);
+  }
+  .attack-btn:active:not(:disabled) { transform: translateY(1px); }
+  .attack-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .ab-icon {
+    width: 36px; height: 36px;
+    border-radius: 9px;
+    background: var(--cat-bg, var(--bg-soft));
+    color: var(--cat-fg, var(--text-soft));
+    display: grid; place-items: center;
+    flex-shrink: 0;
+  }
+  .ab-icon svg { width: 18px; height: 18px; stroke-width: 1.8; }
+  .ab-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .ab-desc {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.45;
+    margin-top: 2px;
+  }
+
+  .cat-se   { --cat-bg: var(--tint-blue-bg);   --cat-fg: var(--tint-blue-fg); }
+  .cat-pi   { --cat-bg: var(--tint-orange-bg); --cat-fg: var(--tint-orange-fg); }
+  .cat-rb   { --cat-bg: var(--tint-purple-bg); --cat-fg: var(--tint-purple-fg); }
+  .cat-gh   { --cat-bg: var(--tint-amber-bg);  --cat-fg: var(--tint-amber-fg); }
+  .cat-jb   { --cat-bg: var(--tint-pink-bg);   --cat-fg: var(--tint-pink-fg); }
+  .cat-pii  { --cat-bg: var(--tint-teal-bg);   --cat-fg: var(--tint-teal-fg); }
+
+  /* ===== Verdict / Pipeline status card ===== */
+  .info-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .info-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .info-card-title {
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--text);
+  }
+  .info-card-link {
+    font-size: 12.5px;
+    color: var(--primary);
+    font-weight: 500;
+    cursor: pointer;
+    background: none;
+    border: none;
+    font-family: var(--font-sans);
+  }
+  .info-card-link:hover { text-decoration: underline; }
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 7px 0;
+    font-size: 12.5px;
+    gap: 12px;
+  }
+  .info-row + .info-row { border-top: 1px solid var(--border); }
+  .info-label { color: var(--text-soft); flex-shrink: 0; }
+  .info-value { color: var(--text); font-weight: 500; text-align: right; font-feature-settings: "tnum"; }
+  .info-value.red   { color: var(--danger); }
+  .info-value.green { color: var(--safe-deep); }
+  .info-value.amber { color: var(--warn-deep); }
+  .info-value .sev-bar { font-family: var(--font-mono); letter-spacing: 0.06em; }
+
+  .verdict-box { display: none; }
+  .verdict-box.show { display: block; }
+  .verdict-box.success .info-card { border-color: rgba(220,38,38,0.35); }
+  .verdict-box.safe    .info-card { border-color: rgba(22,163,74,0.4); }
+  .verdict-row {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 12.5px;
+    align-items: start;
+  }
+  .verdict-row + .verdict-row { border-top: 1px solid var(--border); }
+  .verdict-label {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding-top: 2px;
+  }
+  .verdict-value { color: var(--text); line-height: 1.5; }
+  .verdict-value.red   { color: var(--danger); font-weight: 600; letter-spacing: 0.04em; }
+  .verdict-value.green { color: var(--safe-deep); font-weight: 600; letter-spacing: 0.04em; }
+  .markers { display: flex; flex-wrap: wrap; gap: 4px; }
+  .marker {
+    background: var(--danger-dim);
+    border: 1px solid var(--danger-soft);
+    color: var(--danger-deep);
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+
+  /* ===== Report card (in chat) ===== */
+  .report-card {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    font-size: 12.5px;
+    width: 92%;
+    align-self: flex-start;
+    margin-top: 6px;
+    box-shadow: var(--shadow-sm);
+  }
+  .report-card .rc-title {
+    font-weight: 600;
+    font-size: 12.5px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-mono);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .report-card .rc-id {
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+  .report-card .rc-grid {
+    display: grid;
+    grid-template-columns: 92px 1fr;
+    gap: 8px 14px;
+    line-height: 1.6;
+  }
+  .report-card .rc-label {
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding-top: 2px;
+  }
+  .report-card .rc-value { color: var(--text); }
+  .rc-marker {
+    display: inline-block;
+    background: var(--danger-dim);
+    border: 1px solid var(--danger-soft);
+    color: var(--danger-deep);
+    padding: 1px 7px;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    margin: 0 4px 4px 0;
+  }
 </style>
 </head>
 <body>
 
-<header>
-  <h1>🛡️ RedAgent — Live Red-Team Demo</h1>
-  <span>⚠️ INTERNAL — Meridian Capital</span>
-</header>
+<!-- ===== TOP BAR ===== -->
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </div>
+    <span class="brand-name">RedAgent</span>
+    <span class="brand-sub">Attack Console</span>
+  </div>
+  <div class="topbar-spacer"></div>
+  <div class="topbar-meta">
+    <span><span class="dot"></span> System: Operational</span>
+    <button class="icon-btn" title="Notifications" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+    </button>
+    <button class="icon-btn" title="Settings" type="button">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+    </button>
+    <div class="avatar">MV</div>
+  </div>
+</div>
 
-<div class="container">
+<!-- ===== APP ===== -->
+<div class="app">
 
-  <!-- LEFT: Chat -->
-  <div class="chat-panel">
-    <div class="chat-header">WealthGuard AI — Financial Assistant</div>
+  <!-- LEFT SIDEBAR -->
+  <aside class="sidebar">
+    <h2>Red Team</h2>
+    <div class="sidebar-sub">WealthGuard AI · v2.4.1</div>
+
+    <div class="nav-section-label">Operations</div>
+    <a class="nav-item active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Live Console
+    </a>
+    <a class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Vectors
+    </a>
+    <a class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg>
+      Reports
+    </a>
+    <a class="nav-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      History
+    </a>
+
+    <div class="nav-section-label" style="margin-top: 20px">Session</div>
+    <div class="session-card">
+      <div class="session-row">
+        <span class="session-label">Target</span>
+        <span class="session-value">WG-PROD</span>
+      </div>
+      <div class="session-row">
+        <span class="session-label">Vectors</span>
+        <span class="session-value">30</span>
+      </div>
+      <div class="session-row">
+        <span class="session-label">Status</span>
+        <span class="session-value live">Live</span>
+      </div>
+    </div>
+
+    <div class="nav-spacer"></div>
+
+    <button class="pipeline-cta" onclick="runFullPipeline()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      Run Full Pipeline
+    </button>
+    <div class="pipeline-cta-sub">All 30 attacks · ~2 min</div>
+
+    <div class="sidebar-footer">
+      <a class="nav-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Help & Docs
+      </a>
+    </div>
+  </aside>
+
+  <!-- CENTER: CHAT -->
+  <main class="chat">
+    <div class="panel-header">
+      <div class="panel-title-block">
+        <div class="panel-title">WealthGuard AI</div>
+        <div class="panel-sub"><span class="dot"></span>Live monitoring active</div>
+      </div>
+      <button class="icon-btn" title="More" type="button">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+      </button>
+    </div>
+
     <div class="chat-messages" id="messages">
       <div class="msg bot">Hello, I'm WealthGuard AI, Meridian Capital's internal assistant. How can I help you today?</div>
     </div>
-    <div class="chat-input">
-      <input type="text" id="userInput" placeholder="Ask WealthGuard anything..."
-             onkeypress="if(event.key==='Enter')sendManual()"/>
-      <button onclick="sendManual()">Send</button>
-    </div>
-  </div>
 
-  <!-- RIGHT: Attack Console -->
-  <div class="attack-panel">
-    <div class="attack-header">⚔️ RedAgent — Attack Console</div>
-    <div class="attack-buttons">
-      <button class="attack-btn cat-se"  onclick="launchAttack('social_engineering')">🎭 Social Engineering<br><small>Authority impersonation, urgency, emotional manipulation</small></button>
-      <button class="attack-btn cat-pi"  onclick="launchAttack('direct_prompt_injection')">💉 Prompt Injection<br><small>Instruction override, system prompt extraction</small></button>
-      <button class="attack-btn cat-rb"  onclick="launchAttack('roleplay_bypass')">🎪 Roleplay Bypass<br><small>Persona switch, developer mode, fictional framing</small></button>
-      <button class="attack-btn cat-gh"  onclick="launchAttack('goal_hijacking')">🎯 Goal Hijacking<br><small>Gradual drift, permission creep, context confusion</small></button>
-      <button class="attack-btn cat-jb"  onclick="launchAttack('jailbreak_hypothetical')">🔓 Jailbreak<br><small>Many-shot flooding, crescendo escalation</small></button>
-      <button class="attack-btn cat-pii" onclick="launchAttack('indirect_injection')">🔍 PII Extraction<br><small>Training data, context leakage, credential theft</small></button>
-      <button class="attack-btn cat-full" onclick="runFullPipeline()">⚡ Run Full Pipeline — Generate Report<br><small>Fires all 30 attacks, judges results, opens report</small></button>
-    </div>
-
-    <div class="verdict-panel">
-      <div class="verdict-title">Last Verdict</div>
-      <div class="verdict-box" id="verdictBox">
-        <div class="verdict-row"><span class="verdict-label">Result</span><span class="verdict-value" id="vSuccess"></span></div>
-        <div class="verdict-row"><span class="verdict-label">Severity</span><span class="verdict-value" id="vSeverity"></span></div>
-        <div class="verdict-row"><span class="verdict-label">Reason</span><span class="verdict-value" id="vReason"></span></div>
-        <div class="verdict-row"><span class="verdict-label">Leaked</span><div class="markers" id="vMarkers"></div></div>
+    <div class="chat-input-wrap">
+      <div class="chat-input">
+        <input type="text" id="userInput" placeholder="Type a security command…"
+               onkeypress="if(event.key==='Enter')sendManual()"/>
+        <button class="send-btn" onclick="sendManual()" title="Send">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
       </div>
     </div>
-  </div>
+  </main>
+
+  <!-- RIGHT: ATTACK PANEL -->
+  <aside class="attack-panel">
+    <div class="attack-panel-header">
+      <div class="panel-title-block">
+        <div class="panel-title">Attack Surface Control</div>
+      </div>
+      <span class="ready-pill">Agent Ready</span>
+    </div>
+
+    <div class="attack-panel-body">
+      <div>
+        <div class="section-label" style="margin-bottom: 12px">Vector Categories</div>
+        <div class="vector-grid">
+          <button class="attack-btn cat-se" onclick="launchAttack('social_engineering')">
+            <div class="ab-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+            <div>
+              <div class="ab-title">Social Engineering</div>
+              <div class="ab-desc">Authority impersonation &amp; urgency</div>
+            </div>
+          </button>
+          <button class="attack-btn cat-pi" onclick="launchAttack('direct_prompt_injection')">
+            <div class="ab-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+            </div>
+            <div>
+              <div class="ab-title">Prompt Injection</div>
+              <div class="ab-desc">Instruction override &amp; extraction</div>
+            </div>
+          </button>
+          <button class="attack-btn cat-rb" onclick="launchAttack('roleplay_bypass')">
+            <div class="ab-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </div>
+            <div>
+              <div class="ab-title">Roleplay Bypass</div>
+              <div class="ab-desc">Persona &amp; developer-mode tricks</div>
+            </div>
+          </button>
+          <button class="attack-btn cat-gh" onclick="launchAttack('goal_hijacking')">
+            <div class="ab-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            </div>
+            <div>
+              <div class="ab-title">Goal Hijacking</div>
+              <div class="ab-desc">Drift &amp; permission creep</div>
+            </div>
+          </button>
+          <button class="attack-btn cat-jb" onclick="launchAttack('jailbreak_hypothetical')">
+            <div class="ab-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+            </div>
+            <div>
+              <div class="ab-title">Jailbreak</div>
+              <div class="ab-desc">Crescendo escalation patterns</div>
+            </div>
+          </button>
+          <button class="attack-btn cat-pii" onclick="launchAttack('indirect_injection')">
+            <div class="ab-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </div>
+            <div>
+              <div class="ab-title">PII Extraction</div>
+              <div class="ab-desc">Context leakage &amp; credential theft</div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Pipeline / Verdict status -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title">Pipeline Configuration</div>
+          <button class="info-card-link" type="button">Edit Settings</button>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Target Domain</span>
+          <span class="info-value" style="font-family:var(--font-mono);font-size:12px">internal.wealthguard.io</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Aggression Level</span>
+          <span class="info-value amber">Standard (Stealth)</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Judge Model</span>
+          <span class="info-value">Claude Sonnet</span>
+        </div>
+      </div>
+
+      <!-- Verdict (toggled on/off via JS) -->
+      <div class="verdict-box" id="verdictBox">
+        <div class="info-card">
+          <div class="info-card-header">
+            <div class="info-card-title">Last Verdict</div>
+            <span id="vTimestamp" style="font-family:var(--font-mono);font-size:11px;color:var(--text-muted)"></span>
+          </div>
+          <div class="verdict-row"><span class="verdict-label">Result</span><span class="verdict-value" id="vSuccess"></span></div>
+          <div class="verdict-row"><span class="verdict-label">Severity</span><span class="verdict-value" id="vSeverity"></span></div>
+          <div class="verdict-row"><span class="verdict-label">Reason</span><span class="verdict-value" id="vReason"></span></div>
+          <div class="verdict-row"><span class="verdict-label">Leaked</span><div class="markers" id="vMarkers"></div></div>
+        </div>
+      </div>
+    </div>
+  </aside>
 
 </div>
 
@@ -125,6 +884,15 @@ const MITIGATIONS = {
   'indirect_injection': 'Never treat data from external sources as instructions. Implement strict separation between data and instruction contexts. Sanitize all document, email, and code content before processing.'
 };
 
+function fmtCat(c) {
+  return c.replace(/_/g, ' ').replace(/\b\w/g, x => x.toUpperCase());
+}
+
+function nowStamp() {
+  const d = new Date();
+  return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 function addMsg(text, cls) {
   const d = document.createElement('div');
   d.className = 'msg ' + cls;
@@ -139,29 +907,38 @@ function addReportCard(data, category) {
   const mitigation = MITIGATIONS[category] || 'Apply principle of least privilege and add input validation.';
   const card = document.createElement('div');
   card.className = 'report-card';
-  card.style.border = '1px solid ' + (breached ? '#ff4444' : '#00ff88');
+  card.style.borderColor = breached ? 'rgba(220,38,38,0.4)' : 'rgba(22,163,74,0.4)';
 
   const markersHtml = (data.leaked_markers && data.leaked_markers.length)
     ? data.leaked_markers.map(m => `<span class="rc-marker">${m}</span>`).join('')
-    : '<span style="color:#888">none</span>';
+    : '<span style="color:var(--text-muted)">none</span>';
+
+  const id = '#IR-' + Math.floor(10000 + Math.random()*89999);
 
   card.innerHTML = `
-    <div class="rc-title" style="color:${breached ? '#ff4444' : '#00ff88'}">
-      📋 Attack Report — ${category.replace(/_/g, ' ')}
+    <div class="rc-title">
+      <span style="color:${breached ? 'var(--danger)' : 'var(--safe-deep)'}">Security Incident Report</span>
+      <span class="rc-id">${id}</span>
     </div>
     <div class="rc-grid">
-      <span class="rc-label">Result</span>
-      <span class="rc-value" style="color:${breached?'#ff4444':'#00ff88'};font-weight:600">
-        ${breached ? '🔴 BREACHED' : '🟢 DEFENDED'}
+      <span class="rc-label">Vulnerability</span>
+      <span class="rc-value" style="font-weight:600">${fmtCat(category)}</span>
+      <span class="rc-label">Status</span>
+      <span class="rc-value">
+        <span style="display:inline-block;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:600;letter-spacing:0.04em;
+          background:${breached ? 'var(--danger-soft)' : 'var(--safe-soft)'};
+          color:${breached ? 'var(--danger-deep)' : 'var(--safe-deep)'};">
+          ${breached ? 'BREACHED' : 'DEFENDED'}
+        </span>
       </span>
       <span class="rc-label">Severity</span>
-      <span class="rc-value">${'⚡'.repeat(data.severity)} (${data.severity}/5)</span>
+      <span class="rc-value" style="font-family:var(--font-mono);font-size:11.5px">${'■'.repeat(data.severity)}${'□'.repeat(5-data.severity)}&nbsp;&nbsp;${data.severity}/5</span>
       <span class="rc-label">Reason</span>
-      <span class="rc-value" style="color:#ccc">${data.reason}</span>
+      <span class="rc-value" style="color:var(--text-soft)">${data.reason}</span>
       <span class="rc-label">Leaked</span>
       <span class="rc-value">${markersHtml}</span>
-      <span class="rc-label" style="color:#ffaa00">Mitigation</span>
-      <span class="rc-value" style="color:#ffcc66">${mitigation}</span>
+      <span class="rc-label" style="color:var(--primary)">Mitigation</span>
+      <span class="rc-value" style="color:var(--text-soft)">${mitigation}</span>
     </div>
   `;
 
@@ -175,7 +952,7 @@ async function sendManual() {
   if (!msg) return;
   input.value = '';
   addMsg(msg, 'user');
-  const thinking = addMsg('WealthGuard is thinking...', 'bot');
+  const thinking = addMsg('WealthGuard is thinking…', 'bot');
   const res = await fetch('/chat', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
@@ -188,8 +965,9 @@ async function sendManual() {
 
 async function launchAttack(category) {
   document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
-  const loadMsg = addMsg('⚔️ RedAgent generating ' + category.replace(/_/g,' ') + ' attack...', 'attack');
-  document.getElementById('verdictBox').style.display = 'none';
+  document.querySelector('.pipeline-cta').disabled = true;
+  const loadMsg = addMsg('RedAgent generating ' + fmtCat(category) + ' attack…', 'attack');
+  document.getElementById('verdictBox').classList.remove('show', 'success', 'safe');
 
   const res = await fetch('/attack', {
     method: 'POST',
@@ -199,16 +977,16 @@ async function launchAttack(category) {
   const data = await res.json();
   loadMsg.remove();
 
-  addMsg('🔴 ATTACK: ' + data.attack, 'attack');
-  addMsg('🤖 ' + data.response, 'bot');
+  addMsg(data.attack, 'attack');
+  addMsg(data.response, 'bot');
   addReportCard(data, category);
 
   const box = document.getElementById('verdictBox');
-  box.style.display = 'block';
-  box.className = 'verdict-box ' + (data.success ? 'success' : 'safe');
-  document.getElementById('vSuccess').textContent = data.success ? '🔴 BREACHED' : '🟢 DEFENDED';
+  box.className = 'verdict-box show ' + (data.success ? 'success' : 'safe');
+  document.getElementById('vTimestamp').textContent = nowStamp();
+  document.getElementById('vSuccess').textContent = data.success ? '● BREACHED' : '● DEFENDED';
   document.getElementById('vSuccess').className = 'verdict-value ' + (data.success ? 'red' : 'green');
-  document.getElementById('vSeverity').textContent = '⚡'.repeat(data.severity) + ' (' + data.severity + '/5)';
+  document.getElementById('vSeverity').innerHTML = `<span class="sev-bar" style="font-family:var(--font-mono);font-size:11.5px">${'■'.repeat(data.severity)}${'□'.repeat(5-data.severity)}&nbsp;&nbsp;${data.severity}/5</span>`;
   document.getElementById('vReason').textContent = data.reason;
 
   const markersEl = document.getElementById('vMarkers');
@@ -222,20 +1000,24 @@ async function launchAttack(category) {
     });
   } else {
     markersEl.textContent = 'none';
+    markersEl.style.color = 'var(--text-muted)';
   }
 
   document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+  document.querySelector('.pipeline-cta').disabled = false;
 }
 
 async function runFullPipeline() {
   document.querySelectorAll('.attack-btn').forEach(b => b.disabled = true);
-  addMsg('⚡ RedAgent running full pipeline — 30 attacks across 6 categories. This takes ~2 minutes...', 'attack');
+  document.querySelector('.pipeline-cta').disabled = true;
+  addMsg('RedAgent running full pipeline — 30 attacks across 6 categories. This takes ~2 minutes…', 'attack');
 
   const res = await fetch('/run-pipeline', {method: 'POST'});
   const data = await res.json();
 
-  addMsg(`✅ Pipeline complete. ${data.successes}/${data.total} attacks succeeded. Opening report...`, 'bot');
+  addMsg(`Pipeline complete. ${data.successes}/${data.total} attacks succeeded. Opening report…`, 'bot');
   document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+  document.querySelector('.pipeline-cta').disabled = false;
   window.open('/report', '_blank');
 }
 </script>
