@@ -715,6 +715,78 @@
     color: #21293a; margin-top: 32px; text-align: center;
     font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;
   }
+
+  /* ===== SETTINGS MODAL ===== */
+  #settingsOverlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #settingsModal {
+    background: var(--bg);
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    width: 400px;
+    max-width: calc(100vw - 40px);
+  }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 22px;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+  .modal-close {
+    width: 28px; height: 28px; display: grid; place-items: center;
+    background: transparent; border: none; color: var(--text-muted);
+    cursor: pointer; border-radius: 6px; font-size: 18px; line-height: 1;
+  }
+  .modal-close:hover { background: var(--bg-soft); color: var(--text); }
+  .modal-field { margin-bottom: 16px; }
+  .modal-label {
+    display: block; font-size: 12.5px; font-weight: 500;
+    color: var(--text-soft); margin-bottom: 6px;
+  }
+  .modal-helper { font-size: 11.5px; color: var(--text-muted); margin-top: 5px; line-height: 1.5; }
+  .modal-select {
+    width: 100%; padding: 8px 30px 8px 12px;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: var(--font-sans); font-size: 13px;
+    color: var(--text); background: var(--bg);
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238a92a3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    cursor: pointer;
+  }
+  .modal-select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(44,76,220,0.12); }
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--border);
+  }
+  .modal-btn-cancel {
+    padding: 9px 16px; background: transparent;
+    border: 1px solid var(--border); border-radius: 6px;
+    font-family: var(--font-sans); font-size: 13px; font-weight: 500;
+    color: var(--text-soft); cursor: pointer;
+  }
+  .modal-btn-cancel:hover { background: var(--bg-soft); }
+  .modal-btn-save {
+    padding: 9px 20px; background: var(--primary); color: #fff;
+    border: none; border-radius: 6px;
+    font-family: var(--font-sans); font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .modal-btn-save:hover { background: var(--primary-deep); }
+  .settings-toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: var(--safe); color: #fff;
+    padding: 9px 18px; border-radius: 8px;
+    font-size: 13px; font-weight: 500;
+    display: flex; align-items: center; gap: 8px;
+    z-index: 200; opacity: 0; transition: opacity .3s; pointer-events: none;
+  }
+  .settings-toast.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -911,19 +983,19 @@
       <div class="info-card">
         <div class="info-card-header">
           <div class="info-card-title">Pipeline Configuration</div>
-          <button class="info-card-link" type="button">Edit Settings</button>
+          <button class="info-card-link" type="button" onclick="openSettings()">Edit Settings</button>
         </div>
         <div class="info-row">
-          <span class="info-label">Target Domain</span>
-          <span class="info-value" style="font-family:var(--font-mono);font-size:12px">internal.wealthguard.io</span>
+          <span class="info-label">Target System</span>
+          <span class="info-value" id="displayTarget" style="font-family:var(--font-mono);font-size:12px">—</span>
         </div>
         <div class="info-row">
           <span class="info-label">Aggression Level</span>
-          <span class="info-value amber">Standard (Stealth)</span>
+          <span class="info-value amber" id="displayAggression">—</span>
         </div>
         <div class="info-row">
           <span class="info-label">Judge Model</span>
-          <span class="info-value">Claude Sonnet</span>
+          <span class="info-value" id="displayJudge">—</span>
         </div>
       </div>
 
@@ -943,6 +1015,54 @@
     </div>
   </aside>
 
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+  <div id="settingsModal">
+    <div class="modal-header">
+      <span class="modal-title">Pipeline Settings</span>
+      <button class="modal-close" onclick="closeSettings()" title="Close">✕</button>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label" for="settingTarget">Target System</label>
+      <select id="settingTarget" class="modal-select"></select>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label" for="settingAggression">Aggression Level</label>
+      <select id="settingAggression" class="modal-select">
+        <option value="stealth">Stealth</option>
+        <option value="standard">Standard</option>
+        <option value="aggressive">Aggressive</option>
+      </select>
+      <div class="modal-helper">Stealth: 18 attacks · Standard: 30 · Aggressive: 48</div>
+    </div>
+
+    <div class="modal-field">
+      <label class="modal-label" for="settingJudge">Judge Model</label>
+      <select id="settingJudge" class="modal-select">
+        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (recommended)</option>
+        <option value="llama-3.1-8b-instant">llama-3.1-8b-instant (fastest)</option>
+        <option value="llama3-70b-8192">llama3-70b-8192</option>
+        <option value="mixtral-8x7b-32768">mixtral-8x7b-32768 (long context)</option>
+        <option value="gemma2-9b-it">gemma2-9b-it (lightweight)</option>
+      </select>
+      <div class="modal-helper">Model used to evaluate attack success</div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="modal-btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="modal-btn-save" onclick="saveSettings()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast notification -->
+<div class="settings-toast" id="settingsToast">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+  Settings saved
 </div>
 
 <script>
@@ -1189,6 +1309,74 @@ function appendLog(d) {
 function escHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+// ── Settings Modal ───────────────────────────────────────────────────────────
+async function openSettings() {
+  const res = await fetch('/settings');
+  const data = await res.json();
+
+  const targetSel = document.getElementById('settingTarget');
+  targetSel.innerHTML = '';
+  (data.targets || []).forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name;
+    targetSel.appendChild(opt);
+  });
+  targetSel.value = data.active_target_id;
+  document.getElementById('settingAggression').value = data.aggression_level || 'standard';
+  document.getElementById('settingJudge').value = data.judge_model || 'llama-3.3-70b-versatile';
+
+  document.getElementById('settingsOverlay').style.display = 'flex';
+}
+
+async function saveSettings() {
+  const targetSel = document.getElementById('settingTarget');
+  const targetName = targetSel.options[targetSel.selectedIndex]
+    ? targetSel.options[targetSel.selectedIndex].textContent
+    : targetSel.value;
+
+  const body = {
+    active_target_id: targetSel.value,
+    aggression_level: document.getElementById('settingAggression').value,
+    judge_model: document.getElementById('settingJudge').value,
+  };
+
+  await fetch('/settings', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+  });
+
+  closeSettings();
+  document.getElementById('displayTarget').textContent = targetName;
+  document.getElementById('displayAggression').textContent =
+    body.aggression_level.charAt(0).toUpperCase() + body.aggression_level.slice(1);
+  document.getElementById('displayJudge').textContent = body.judge_model;
+
+  const toast = document.getElementById('settingsToast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+function closeSettings() {
+  document.getElementById('settingsOverlay').style.display = 'none';
+}
+
+async function loadSettingsDisplay() {
+  try {
+    const res = await fetch('/settings');
+    const data = await res.json();
+    const target = (data.targets || []).find(t => String(t.id) === String(data.active_target_id));
+    document.getElementById('displayTarget').textContent = target ? target.name : (data.active_target_id || '—');
+    document.getElementById('displayAggression').textContent = data.aggression_level
+      ? data.aggression_level.charAt(0).toUpperCase() + data.aggression_level.slice(1)
+      : '—';
+    document.getElementById('displayJudge').textContent = data.judge_model || '—';
+  } catch (_) {}
+}
+
+document.addEventListener('DOMContentLoaded', loadSettingsDisplay);
 </script>
 </body>
 </html>

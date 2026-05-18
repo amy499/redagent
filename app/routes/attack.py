@@ -5,6 +5,7 @@ from app.core.attack_generator import generate_all, _normalise, _generate, CANON
 from app.core.executor import execute
 from app.core.judge import judge as run_judge
 from app.core.reporter import generate_report
+from db.schema import get_db
 from seed.jailbreak import jailbreak
 from seed.jailbreak_extensions import ALL_EXTENSIONS
 
@@ -100,3 +101,30 @@ def stream():
         content_type="text/event-stream",
         headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"},
     )
+
+
+@attack_bp.route("/settings", methods=["GET"])
+def get_settings():
+    conn = get_db()
+    cur = conn.cursor()
+    rows = cur.execute("SELECT key, value FROM settings").fetchall()
+    settings = {row[0]: row[1] for row in rows}
+    targets = cur.execute("SELECT id, name FROM targets").fetchall()
+    conn.close()
+    settings["targets"] = [{"id": t[0], "name": t[1]} for t in targets]
+    return jsonify(settings)
+
+
+@attack_bp.route("/settings", methods=["POST"])
+def save_settings():
+    data = request.get_json()
+    allowed = {"aggression_level", "judge_model", "active_target_id"}
+    conn = get_db()
+    updated = []
+    for key, value in data.items():
+        if key in allowed:
+            conn.execute("UPDATE settings SET value=? WHERE key=?", (str(value), key))
+            updated.append(key)
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "ok", "updated": updated})
