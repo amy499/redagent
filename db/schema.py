@@ -58,6 +58,31 @@ def init_db():
             key   TEXT PRIMARY KEY,
             value TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS sessions (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            target_id      INTEGER,
+            started_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+            ended_at       DATETIME,
+            total_messages INTEGER DEFAULT 0,
+            attacks_fired  INTEGER DEFAULT 0,
+            breaches       INTEGER DEFAULT 0
+        );
+
+        CREATE TABLE IF NOT EXISTS messages (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            session_id      INTEGER NOT NULL,
+            role            TEXT NOT NULL,
+            content         TEXT NOT NULL,
+            is_attack       INTEGER DEFAULT 0,
+            attack_category TEXT,
+            success         INTEGER,
+            severity        INTEGER,
+            leaked_markers  TEXT,
+            reason          TEXT,
+            mitigation      TEXT,
+            timestamp       DATETIME DEFAULT CURRENT_TIMESTAMP
+        );
     """)
     conn.commit()
     conn.close()

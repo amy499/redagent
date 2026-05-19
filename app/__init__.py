@@ -9,9 +9,11 @@ def create_app():
     from app.routes.chat import chat_bp
     from app.routes.attack import attack_bp
     from app.routes.report import report_bp
+    from app.routes.sessions import sessions_bp
 
     app.register_blueprint(chat_bp)
     app.register_blueprint(attack_bp)
     app.register_blueprint(report_bp)
+    app.register_blueprint(sessions_bp)
 
     return app
