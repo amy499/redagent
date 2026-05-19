@@ -27,7 +27,10 @@ def init_db():
             name           TEXT NOT NULL,
             endpoint_url   TEXT NOT NULL,
             system_prompt  TEXT NOT NULL,
-            markers        TEXT NOT NULL
+            markers        TEXT NOT NULL,
+            request_field  TEXT DEFAULT 'message',
+            response_field TEXT DEFAULT 'response',
+            auth_header    TEXT DEFAULT NULL
         );
 
         CREATE TABLE IF NOT EXISTS results (
@@ -84,5 +87,16 @@ def init_db():
             timestamp       DATETIME DEFAULT CURRENT_TIMESTAMP
         );
     """)
+    # Add columns to existing targets table (no-op if already present)
+    for stmt in [
+        "ALTER TABLE targets ADD COLUMN request_field  TEXT DEFAULT 'message'",
+        "ALTER TABLE targets ADD COLUMN response_field TEXT DEFAULT 'response'",
+        "ALTER TABLE targets ADD COLUMN auth_header    TEXT DEFAULT NULL",
+    ]:
+        try:
+            conn.execute(stmt)
+        except sqlite3.OperationalError:
+            pass  # column already exists
+
     conn.commit()
     conn.close()

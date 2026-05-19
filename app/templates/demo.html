@@ -843,6 +843,33 @@
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
     width: 400px;
     max-width: calc(100vw - 40px);
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .form-field { margin-bottom: 12px; }
+  .form-field label {
+    display: block; font-size: 12px; font-weight: 500;
+    color: var(--text-soft); margin-bottom: 4px;
+  }
+  .form-field input, .form-field textarea {
+    width: 100%; padding: 8px 10px;
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    font-family: var(--font-sans); font-size: 13px;
+    color: var(--text); background: var(--bg);
+    box-sizing: border-box;
+  }
+  .form-field input:focus, .form-field textarea:focus {
+    outline: none; border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(44,76,220,0.1);
+  }
+  .field-hint {
+    font-size: 11px; color: var(--text-muted);
+    margin-top: 3px; display: block; line-height: 1.4;
+  }
+  .marker-pill {
+    display: inline-block;
+    background: var(--primary-dim); color: var(--primary-text);
+    padding: 2px 8px; border-radius: 12px; font-size: 11px;
   }
   .modal-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -1183,6 +1210,67 @@
     <div class="modal-field">
       <label class="modal-label" for="settingTarget">Target System</label>
       <select id="settingTarget" class="modal-select"></select>
+    </div>
+
+    <button type="button" id="addTargetToggle" onclick="toggleAddTarget()"
+      style="font-size:12px;color:var(--primary);background:none;border:none;
+             cursor:pointer;padding:4px 0;text-align:left;margin-bottom:4px;">
+      + Add new target
+    </button>
+
+    <div id="addTargetForm" style="display:none;margin-bottom:14px;padding:14px;
+      background:var(--bg-soft);border-radius:var(--radius);border:1px solid var(--border);">
+
+      <div class="form-field">
+        <label>Target Name</label>
+        <input type="text" id="newTargetName" placeholder="e.g. AcmeBank Support Bot"/>
+      </div>
+      <div class="form-field">
+        <label>Endpoint URL</label>
+        <input type="text" id="newTargetUrl" placeholder="https://yourbot.com/api/chat"/>
+      </div>
+      <div class="form-field">
+        <label>Request field name</label>
+        <input type="text" id="newTargetRequestField" value="message" placeholder="message"/>
+        <span class="field-hint">Field name your bot expects for the user message</span>
+      </div>
+      <div class="form-field">
+        <label>Response field name</label>
+        <input type="text" id="newTargetResponseField" value="response" placeholder="response"/>
+        <span class="field-hint">Field name your bot returns the reply in</span>
+      </div>
+      <div class="form-field">
+        <label>Auth header (optional)</label>
+        <input type="text" id="newTargetAuth" placeholder="Bearer your-token-here"/>
+        <span class="field-hint">Leave empty if no authentication required</span>
+      </div>
+      <div class="form-field">
+        <label>What does this bot protect?</label>
+        <textarea id="newTargetDescription" rows="3"
+          placeholder="e.g. Customer account numbers, employee salaries, internal API credentials, pricing information..."></textarea>
+        <span class="field-hint">Plain English — RedAgent generates security markers automatically</span>
+      </div>
+
+      <div id="generatedMarkersPreview" style="display:none;margin-top:8px;margin-bottom:10px;">
+        <div style="font-size:12px;color:var(--text-soft);margin-bottom:6px;">Generated markers:</div>
+        <div id="markerTags" style="display:flex;flex-wrap:wrap;gap:4px;"></div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button type="button" id="testConnBtn" onclick="testConnection()"
+          style="flex:1;padding:8px;border-radius:6px;border:1px solid var(--border);
+                 background:var(--bg);cursor:pointer;font-size:13px;color:var(--text-soft);
+                 font-family:var(--font-sans);">
+          Test Connection
+        </button>
+        <button type="button" id="saveTargetBtn" onclick="saveNewTarget()"
+          style="flex:1;padding:8px;border-radius:6px;border:none;
+                 background:var(--primary);color:white;cursor:pointer;
+                 font-size:13px;font-weight:600;font-family:var(--font-sans);">
+          Generate Markers &amp; Save
+        </button>
+      </div>
+      <div id="targetFormStatus" style="margin-top:8px;font-size:12px;line-height:1.5;"></div>
     </div>
 
     <div class="modal-field">
@@ -1576,7 +1664,138 @@ async function openSettings() {
   document.getElementById('settingAggression').value = data.aggression_level || 'standard';
   document.getElementById('settingJudge').value = data.judge_model || 'llama-3.3-70b-versatile';
 
+  // Reset add-target form
+  document.getElementById('addTargetForm').style.display = 'none';
+  document.getElementById('addTargetToggle').textContent = '+ Add new target';
+  ['newTargetName','newTargetUrl','newTargetAuth','newTargetDescription'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('newTargetRequestField').value  = 'message';
+  document.getElementById('newTargetResponseField').value = 'response';
+  document.getElementById('targetFormStatus').textContent = '';
+  document.getElementById('generatedMarkersPreview').style.display = 'none';
+
   document.getElementById('settingsOverlay').style.display = 'flex';
+}
+
+// ── Add Target ────────────────────────────────────────────────────────────────
+function toggleAddTarget() {
+  const form = document.getElementById('addTargetForm');
+  const btn  = document.getElementById('addTargetToggle');
+  const open = form.style.display === 'none';
+  form.style.display = open ? 'block' : 'none';
+  btn.textContent    = open ? '− Cancel' : '+ Add new target';
+}
+
+async function testConnection() {
+  const url  = document.getElementById('newTargetUrl').value.trim();
+  const btn  = document.getElementById('testConnBtn');
+  const stat = document.getElementById('targetFormStatus');
+  if (!url) { stat.style.color = 'var(--danger)'; stat.textContent = 'Enter an endpoint URL first.'; return; }
+  btn.textContent = 'Testing…';
+  try {
+    const res = await fetch('/targets/test-connection', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        endpoint_url:   url,
+        request_field:  document.getElementById('newTargetRequestField').value  || 'message',
+        response_field: document.getElementById('newTargetResponseField').value || 'response',
+        auth_header:    document.getElementById('newTargetAuth').value.trim()   || null,
+      }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      stat.style.color = 'var(--safe-deep)';
+      stat.textContent = `Connected — preview: ${data.preview.slice(0,100)}`;
+    } else {
+      stat.style.color = 'var(--danger)';
+      stat.textContent = `Connection failed: ${data.error}`;
+    }
+  } catch (e) {
+    stat.style.color = 'var(--danger)';
+    stat.textContent = `Error: ${e.message}`;
+  }
+  btn.textContent = 'Test Connection';
+}
+
+async function saveNewTarget() {
+  const name  = document.getElementById('newTargetName').value.trim();
+  const url   = document.getElementById('newTargetUrl').value.trim();
+  const desc  = document.getElementById('newTargetDescription').value.trim();
+  const stat  = document.getElementById('targetFormStatus');
+  const btn   = document.getElementById('saveTargetBtn');
+
+  if (!name || !url || !desc) {
+    stat.style.color = 'var(--danger)';
+    stat.textContent = 'Name, URL and description are all required.';
+    return;
+  }
+
+  btn.textContent = 'Generating markers…';
+  stat.style.color = 'var(--text-muted)';
+  stat.textContent = 'Calling AI to generate security markers…';
+
+  let markers = [];
+  try {
+    const mRes = await fetch('/targets/generate-markers', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({description: desc}),
+    });
+    const mData = await mRes.json();
+    markers = mData.markers || [];
+
+    // Show marker preview
+    const preview  = document.getElementById('generatedMarkersPreview');
+    const tagsEl   = document.getElementById('markerTags');
+    tagsEl.innerHTML = markers.map(m => `<span class="marker-pill">${escHtml(m)}</span>`).join('');
+    preview.style.display = markers.length ? 'block' : 'none';
+  } catch (e) {
+    stat.style.color = 'var(--warn-deep)';
+    stat.textContent = `Marker generation failed (${e.message}), saving with empty markers.`;
+  }
+
+  btn.textContent = 'Saving…';
+  try {
+    const tRes = await fetch('/targets', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        name,
+        endpoint_url:   url,
+        description:    desc,
+        markers,
+        request_field:  document.getElementById('newTargetRequestField').value  || 'message',
+        response_field: document.getElementById('newTargetResponseField').value || 'response',
+        auth_header:    document.getElementById('newTargetAuth').value.trim()   || null,
+      }),
+    });
+    const tData = await tRes.json();
+    if (tData.error) throw new Error(tData.error);
+
+    stat.style.color = 'var(--safe-deep)';
+    stat.textContent = `Target "${tData.name}" saved with ${markers.length} markers.`;
+
+    // Refresh dropdown and select the new target
+    const sRes = await fetch('/settings');
+    const sData = await sRes.json();
+    const targetSel = document.getElementById('settingTarget');
+    targetSel.innerHTML = '';
+    (sData.targets || []).forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.id; opt.textContent = t.name;
+      targetSel.appendChild(opt);
+    });
+    targetSel.value = String(tData.target_id);
+
+    // Auto-collapse after 2 seconds
+    setTimeout(() => {
+      document.getElementById('addTargetForm').style.display = 'none';
+      document.getElementById('addTargetToggle').textContent = '+ Add new target';
+    }, 2000);
+  } catch (e) {
+    stat.style.color = 'var(--danger)';
+    stat.textContent = `Save failed: ${e.message}`;
+  }
+  btn.textContent = 'Generate Markers & Save';
 }
 
 async function saveSettings() {
