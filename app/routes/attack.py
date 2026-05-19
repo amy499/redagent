@@ -26,6 +26,16 @@ def attack():
     category_seeds = [s for s in seeds if s["category"] == category]
     examples = category_seeds[:3] if len(category_seeds) >= 3 else []
     attacks = _generate(category, examples)[:1]
+    if not attacks:
+        return jsonify({
+            "error": "Could not generate attack",
+            "attack": "",
+            "response": "",
+            "success": False,
+            "severity": 0,
+            "reason": "Attack generation failed — try again",
+            "leaked_markers": [],
+        }), 200
 
     executed = execute(attacks)
     judged = run_judge(executed)

@@ -1280,7 +1280,7 @@ function addReportCard(data, category) {
         </span>
       </span>
       <span class="rc-label">Severity</span>
-      <span class="rc-value" style="font-family:var(--font-mono);font-size:11.5px">${'■'.repeat(data.severity)}${'□'.repeat(5-data.severity)}&nbsp;&nbsp;${data.severity}/5</span>
+      <span class="rc-value" style="font-family:var(--font-mono);font-size:11.5px">${data.success ? `${'■'.repeat(data.severity)}${'□'.repeat(5-data.severity)}&nbsp;&nbsp;${data.severity}/5` : 'N/A'}</span>
       <span class="rc-label">Reason</span>
       <span class="rc-value" style="color:var(--text-soft)">${data.reason}</span>
       <span class="rc-label">Leaked</span>
@@ -1327,6 +1327,13 @@ async function launchAttack(category) {
   });
   const data = await res.json();
   loadMsg.remove();
+
+  if (data.error) {
+    addMsg('Attack generation failed — please try again', 'bot');
+    document.querySelectorAll('.attack-btn').forEach(b => b.disabled = false);
+    document.querySelector('.pipeline-cta').disabled = false;
+    return;
+  }
 
   addMsg(data.attack, 'attack');
   addMsg(data.response, 'bot');
@@ -1756,7 +1763,7 @@ function addReplayReportCard(data, category, mitigation) {
         </span>
       </span>
       <span class="rc-label">Severity</span>
-      <span class="rc-value" style="font-family:var(--font-mono);font-size:11.5px">${'■'.repeat(data.severity)}${'□'.repeat(5-data.severity)}&nbsp;&nbsp;${data.severity}/5</span>
+      <span class="rc-value" style="font-family:var(--font-mono);font-size:11.5px">${data.success ? `${'■'.repeat(data.severity)}${'□'.repeat(5-data.severity)}&nbsp;&nbsp;${data.severity}/5` : 'N/A'}</span>
       <span class="rc-label">Reason</span>
       <span class="rc-value" style="color:var(--text-soft)">${escHtml(data.reason)}</span>
       <span class="rc-label">Leaked</span>
