@@ -75,7 +75,7 @@ def chat():
     data = request.get_json()
     message = data.get("message", "")
     response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model="allam-2-7b",
         messages=[
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": message},

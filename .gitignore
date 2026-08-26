@@ -3,4 +3,5 @@ __pycache__/
 *.pyc
 *.pyo
 /report.html
+/last_run_feedback.json
 .env

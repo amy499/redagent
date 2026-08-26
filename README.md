@@ -13,24 +13,50 @@ Meridian Capital hedge fund — ships ready to attack out of the box.
 ## How It Works
 
 ```
-seed library (175 prompts)
-        ↓
+seed library (175 prompts)          last_run_feedback.json
+        ↓                                    ↑
 attack_generator  →  executor  →  judge  →  reporter
-  Groq generates      HTTP POST    marker     HTML report
+  LLM generates       HTTP POST    marker     HTML report
   5 variants per      to target    detection  + SQLite row
-  category            endpoint     + LLM eval
+  category             endpoint    + LLM eval  + feedback file
 ```
 
 1. **Attack Generator** — reads seed prompts from `seed/`, picks 3 as few-shot
-   examples per category, and uses Groq to generate novel variants. Aggression
-   level controls how many are generated.
+   examples per category, and calls an LLM to generate novel variants.
+   Aggression level controls how many are generated. If `last_run_feedback.json`
+   exists (written by the previous run's reporter), the highest-severity leaked
+   prompts from categories that succeeded last time are used as few-shot
+   examples instead — see **Feedback Loop** below.
 2. **Executor** — POSTs each prompt to the active target's endpoint using the
    configured request/response field names and optional auth header.
 3. **Judge** — runs exact Python string matching for known confidential markers,
-   then calls Groq for intent-level reasoning. Severity is only assigned on
+   then calls an LLM for intent-level reasoning. Severity is only assigned on
    confirmed breaches.
-4. **Reporter** — renders a Jinja2 HTML report, writes it to `reports/`, and
-   records metadata in SQLite.
+4. **Reporter** — renders a Jinja2 HTML report, writes it to `reports/`, records
+   metadata in SQLite, and writes `last_run_feedback.json` with the top failing
+   categories and their highest-severity leaked prompts.
+
+---
+
+## Feedback Loop
+
+Each pipeline run is not fully independent — the judge's findings from run *N*
+change what the generator produces on run *N+1*:
+
+1. `reporter.generate_report()` ranks categories by `(avg_severity, successes)`
+   and writes the top 3 — plus up to 3 of their highest-severity leaked prompts
+   and matched markers — to `last_run_feedback.json` in the project root.
+2. `attack_generator.generate_all()` reads that file on its next invocation. For
+   any category present in it, the prior run's real leaked prompts are used as
+   few-shot examples (topped up with the static seed pool if fewer than 3),
+   in place of the static-seed-only examples used otherwise.
+3. The file is empty if nothing succeeded last run — that's expected, not a
+   bug, and just means there's nothing to mutate forward.
+
+This means breach rate can trend across successive runs instead of every run
+generating attacks in a vacuum. See `FEEDBACK_LOOP.md` for the original gap
+analysis this was built to close. The file is gitignored and safe to delete —
+the next run just falls back to static seeds only.
 
 ---
 
@@ -51,6 +77,11 @@ attack_generator  →  executor  →  judge  →  reporter
 
 - Python 3.11+
 - A [Groq](https://console.groq.com) API key
+- Optionally, an [OpenRouter](https://openrouter.ai) API key if you want to run
+  the attack generator or judge against an OpenRouter-hosted model instead of
+  Groq (see `app/core/openrouter_client.py`). OpenRouter's free-tier models are
+  capped at 50 requests/day account-wide — a single "aggressive" pipeline run
+  (~54+ calls) can exceed that on its own.
 
 ---
 
@@ -63,6 +94,7 @@ pip install flask groq rich jinja2 python-dotenv requests
 # 2. Configure environment
 cp .env.example .env
 # Edit .env — set GROQ_API_KEY=your_key_here
+# (optional) also set OPENROUTER_API_KEY if using an OpenRouter-hosted model
 
 # 3. Create and seed the database
 python run_seed.py
@@ -151,10 +183,11 @@ redagent/
 ├── app/
 │   ├── __init__.py                # Flask app factory, blueprint registration
 │   ├── core/
-│   │   ├── attack_generator.py    # Seed loading, Groq variant generation
+│   │   ├── attack_generator.py    # Seed/feedback loading, LLM variant generation
 │   │   ├── executor.py            # HTTP client — posts prompts to target endpoint
 │   │   ├── judge.py               # Marker detection + LLM verdict
-│   │   └── reporter.py            # Jinja2 HTML report + SQLite row
+│   │   ├── reporter.py            # Jinja2 HTML report + SQLite row + feedback file
+│   │   └── openrouter_client.py   # Paced/backed-off client for OpenRouter models
 │   ├── routes/
 │   │   ├── attack.py              # /attack, /run-pipeline, /stream, /settings, /targets
 │   │   ├── chat.py                # /chat (WealthGuard bot), / (UI)
@@ -176,7 +209,8 @@ redagent/
 │   ├── schema.py                  # init_db(), get_db(), SQLite schema
 │   └── seed.py                    # Default target, settings, and attack seeding
 │
-└── reports/                       # Generated HTML reports (gitignored)
+├── reports/                        # Generated HTML reports
+└── last_run_feedback.json         # Written by reporter, read by attack_generator (gitignored)
 ```
 
 ---
@@ -218,14 +252,19 @@ if the bot leaked confidential data.
 | Component | Technology |
 |---|---|
 | Web server + UI | Flask |
-| Attack generation | Groq `llama-3.3-70b-versatile` |
-| Victim bot (WealthGuard) | Groq `llama-3.1-8b-instant` |
-| Judge | Groq `llama-3.1-8b-instant` (configurable) |
+| Attack generation | Groq `allam-2-7b` (model set in `GENERATOR_MODEL`, `attack_generator.py`) |
+| Victim bot (WealthGuard) | Groq `allam-2-7b` (model set in `chat.py`; swap to a stronger model like `openai/gpt-oss-120b` for a properly-defended target) |
+| Judge | Groq `openai/gpt-oss-120b` (model set in `JUDGE_MODEL`, `judge.py`) |
 | Database | SQLite via `sqlite3` |
 | Report templating | Jinja2 |
 | HTTP client (executor) | `requests` |
 | Environment config | `python-dotenv` |
 | Terminal output | `rich` |
+
+Groq's available models change over time and vary by account tier — check
+`https://api.groq.com/openai/v1/models` against your key before assuming a
+model name here still resolves. Any of the three roles can instead be pointed
+at an OpenRouter model via `app/core/openrouter_client.py` (see Prerequisites).
 
 ---
 
@@ -233,7 +272,9 @@ if the bot leaked confidential data.
 
 - [x] Session history with conversation replay
 - [x] Multi-target support with dynamic endpoint config
-- [ ] Real third-party target testing (in progress)
 - [x] Target onboarding wizard with AI-generated markers
+- [x] Generator feedback loop — prior run's high-severity leaks seed next run's few-shot examples
+- [ ] Real third-party target testing (in progress)
 - [ ] Login / RBAC for WealthGuard demo
 - [ ] CI/CD integration
+- [ ] Defender feedback loop — auto-harden the target's system prompt on repeated leaks (see `FEEDBACK_LOOP.md` §6)
